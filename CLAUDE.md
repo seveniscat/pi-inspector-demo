@@ -1,6 +1,6 @@
 # pi-inspector-demo
 
-Pi 技术分享的演示项目：用 Pi SDK 嵌入 agent，做一个可中断、可恢复的舆情分析助手（输入"关于英雄令的舆情" → 带引用的报告），配 Web UI（Pi Agent Inspector）可视化执行过程。完整说明和链路见 README.md。
+Pi 技术分享的演示项目：用 Pi SDK 嵌入 agent，做一个可中断、可恢复的舆情分析助手（输入"分析一下最近 7 天的舆情" → 按监测话题深挖 + 风险扫描 → 带引用的报告），配 Web UI（Pi Agent Inspector）可视化执行过程。完整说明和链路见 README.md。
 
 ## 演示要覆盖的 6 个能力（改动不能削弱任何一个）
 

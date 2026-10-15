@@ -42,6 +42,7 @@ export interface PostQuery {
   platforms?: string[];
   start?: string; // YYYY-MM-DD
   end?: string; // YYYY-MM-DD（含）
+  query?: string; // 按"来自搜索"（监测词）精确过滤
   sentiment?: Sentiment;
   relevance?: string; // 按相关性标签精确过滤，如「相关」
   sort?: "comments" | "negative" | "latest";
@@ -52,6 +53,8 @@ export interface PostQuery {
 export interface CommentQuery {
   keyword?: string; // 匹配评论内容
   post_id?: string;
+  query?: string; // 只看某个监测词（来自搜索）下帖子的评论
+  relevance?: string; // 只看相关性为该标签的帖子下的评论
   platforms?: string[];
   start?: string;
   end?: string;
@@ -73,14 +76,16 @@ export interface PostDetail {
 
 export interface TrendQuery {
   keyword?: string; // 匹配帖子标题和来自搜索；评论按所属帖子计入
+  query?: string; // 只统计某个监测词
+  relevance?: string; // 只统计相关性为该标签的帖子
   platforms?: string[];
   start?: string;
   end?: string;
-  group_by?: "day" | "platform";
+  group_by?: "day" | "platform" | "query";
 }
 
 export interface TrendRow {
-  key: string; // 日期或平台
+  key: string; // 日期 / 平台 / 监测词
   posts: number;
   comments: number;
   positive: number; // 评论情绪

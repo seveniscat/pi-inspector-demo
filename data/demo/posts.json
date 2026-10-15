@@ -66,8 +66,8 @@
   "comment_count": 9800,
   "sentiment": "positive",
   "comment_sentiment": {
-   "positive": 10,
-   "neutral": 2,
+   "positive": 9,
+   "neutral": 3,
    "negative": 2
   },
   "relevance": "不相关",
@@ -332,8 +332,8 @@
   "comment_count": 160,
   "sentiment": "positive",
   "comment_sentiment": {
-   "positive": 2,
-   "neutral": 0,
+   "positive": 1,
+   "neutral": 1,
    "negative": 0
   },
   "relevance": "相关",
@@ -523,8 +523,8 @@
   "sentiment": "negative",
   "comment_sentiment": {
    "positive": 0,
-   "neutral": 1,
-   "negative": 1
+   "neutral": 0,
+   "negative": 2
   },
   "relevance": "相关",
   "source_query": "栖木 异物",
@@ -580,8 +580,8 @@
   "sentiment": "negative",
   "comment_sentiment": {
    "positive": 0,
-   "neutral": 2,
-   "negative": 5
+   "neutral": 3,
+   "negative": 4
   },
   "relevance": "相关",
   "source_query": "栖木 异物",
@@ -750,9 +750,9 @@
   "comment_count": 3100,
   "sentiment": "neutral",
   "comment_sentiment": {
-   "positive": 2,
-   "neutral": 2,
-   "negative": 3
+   "positive": 1,
+   "neutral": 4,
+   "negative": 2
   },
   "relevance": "相关",
   "source_query": "栖木 异物",
@@ -788,9 +788,9 @@
   "comment_count": 60,
   "sentiment": "neutral",
   "comment_sentiment": {
-   "positive": 1,
+   "positive": 0,
    "neutral": 1,
-   "negative": 0
+   "negative": 1
   },
   "relevance": "相关",
   "source_query": "栖木 桂花燕麦拿铁",

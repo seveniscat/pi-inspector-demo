@@ -71,7 +71,7 @@ export function formatInfo(i: DatasetInfo): string {
     `帖子 ${i.posts} 条，评论 ${i.comments} 条`,
     `平台：${i.platforms.join("、")}`,
     `帖子发布时间：${i.start} ~ ${i.end}；评论发布时间：${i.comment_start} ~ ${i.comment_end}`,
-    `抓取时使用的搜索词（帖子数）：${kv(i.source_queries)}`,
+    `监测词 / 来自搜索（帖子数）：${kv(i.source_queries)}`,
     `相关性取值（帖子数）：${kv(i.relevance)}`,
   ].join("\n");
 }
@@ -127,7 +127,7 @@ export function formatComments(q: CommentQuery, r: Page<Comment>): string {
 
 export function formatTrend(q: TrendQuery, rows: TrendRow[]): string {
   if (!rows.length) return "该条件下没有数据";
-  const head = q.group_by === "platform" ? "平台" : "日期";
+  const head = { platform: "平台", query: "监测词", day: "日期" }[q.group_by ?? "day"];
   const sum = rows.reduce((s, r) => ({ p: s.p + r.posts, c: s.c + r.comments }), { p: 0, c: 0 });
   const lines = [`${head} | 新帖 | 新评论 | 评论情绪 积/中/消 | 消极占比（合计帖子 ${sum.p}，评论 ${sum.c}）`];
   for (const r of rows) {
@@ -139,6 +139,8 @@ export function formatTrend(q: TrendQuery, rows: TrendRow[]): string {
 // ── 参数 schema ──
 const Platforms = Type.Optional(Type.Array(Type.String(), { description: "平台过滤，取值见 dataset_info，如 抖音 / 小红书 / 微博；不传表示全部" }));
 const DateStr = (d: string) => Type.Optional(Type.String({ description: d + "，格式 YYYY-MM-DD" }));
+const QueryP = Type.Optional(Type.String({ description: "监测词，即「来自搜索」字段的取值（见 dataset_info），精确匹配" }));
+const RelevanceP = Type.Optional(Type.String({ description: "相关性标签，取值见 dataset_info，如「相关」" }));
 const SentimentP = Type.Optional(
   Type.Union([Type.Literal("positive"), Type.Literal("neutral"), Type.Literal("negative")], { description: "情绪过滤" }),
 );
@@ -157,7 +159,9 @@ export function createSocialExtension(emit: Emit, opts: SocialOptions) {
     pi.registerTool({
       name: "dataset_info",
       label: "数据概况",
-      description: "查看舆情数据集概况：帖子 / 评论总量、平台、时间范围、抓取时用了哪些搜索词。研究开始时先调用一次，用来确定时间范围和查询词。",
+      description:
+        "查看舆情数据集概况：帖子 / 评论总量、平台、时间范围、监测词（来自搜索）及帖子数、相关性取值。" +
+        "研究开始时先调用一次：数据是按监测词抓取的，监测词决定了研究对象和话题划分。",
       parameters: Type.Object({}),
       async execute() {
         const r = await run<DatasetInfo>("dataset_info", "info", {});
@@ -176,8 +180,9 @@ export function createSocialExtension(emit: Emit, opts: SocialOptions) {
         platforms: Platforms,
         start: DateStr("开始日期"),
         end: DateStr("结束日期（含）"),
+        query: QueryP,
         sentiment: SentimentP,
-        relevance: Type.Optional(Type.String({ description: "按相关性标签过滤，取值见 dataset_info，如「相关」" })),
+        relevance: RelevanceP,
         sort: Type.Optional(
           Type.Union([Type.Literal("comments"), Type.Literal("negative"), Type.Literal("latest")], {
             description: "comments=评论数最多（默认），negative=消极评论最多，latest=最新",
@@ -219,6 +224,8 @@ export function createSocialExtension(emit: Emit, opts: SocialOptions) {
       parameters: Type.Object({
         keyword: Type.Optional(Type.String({ description: "匹配评论内容，规则同 social_search" })),
         post_id: Type.Optional(Type.String({ description: "只看某个帖子下的评论" })),
+        query: QueryP,
+        relevance: RelevanceP,
         platforms: Platforms,
         start: DateStr("开始日期"),
         end: DateStr("结束日期（含）"),
@@ -239,13 +246,21 @@ export function createSocialExtension(emit: Emit, opts: SocialOptions) {
     pi.registerTool({
       name: "social_trend",
       label: "声量趋势",
-      description: "统计新帖数、新评论数和评论情绪分布，可按天（默认）或按平台分组。用来看走势、找评论突增或消极占比升高的日子。",
+      description:
+        "统计新帖数、新评论数和评论情绪分布，可按天（默认）、按平台、按监测词（来自搜索）分组。" +
+        "用来看走势、找评论突增或消极占比升高的日子、比较各监测话题的声量和情绪。",
       parameters: Type.Object({
         keyword: Type.Optional(Type.String({ description: "按帖子标题 / 来自搜索过滤，规则同 social_search" })),
+        query: QueryP,
+        relevance: RelevanceP,
         platforms: Platforms,
         start: DateStr("开始日期"),
         end: DateStr("结束日期（含）"),
-        group_by: Type.Optional(Type.Union([Type.Literal("day"), Type.Literal("platform")], { description: "day=按天（默认），platform=按平台" })),
+        group_by: Type.Optional(
+          Type.Union([Type.Literal("day"), Type.Literal("platform"), Type.Literal("query")], {
+            description: "day=按天（默认），platform=按平台，query=按监测词",
+          }),
+        ),
       }),
       async execute(_id: string, params: TrendQuery) {
         const r = await run<TrendRow[]>("social_trend", "trend", params);

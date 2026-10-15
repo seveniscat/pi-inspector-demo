@@ -1,21 +1,27 @@
 # Pi Inspector Demo —— 可中断、可恢复的舆情分析助手
 
-用 Pi SDK 把 agent 嵌进一个 Node 服务。用户只输入一句话，比如"关于英雄令的舆情"，agent 自己界定研究对象、查询帖子和评论数据、拆解问题、收集证据，最后输出带引用的舆情分析报告。中途 `kill -9` 进程，重启后从断点继续。配套的 Web 页面 **Pi Agent Inspector** 把执行过程的每一步实时可视化。
+用 Pi SDK 把 agent 嵌进一个 Node 服务。数据是按监测词抓取的社媒帖子和评论（Excel 导入）。用户只说一句"分析一下最近 7 天的舆情"，agent 自己盘点数据、按监测话题逐个深挖、做跨话题风险扫描，输出带引用的舆情分析报告。中途 `kill -9` 进程，重启后从断点继续。配套的 Web 页面 **Pi Agent Inspector** 把执行过程的每一步实时可视化。
 
 > 关于命名：本项目的 `resume` extension **不是**官方的 Pi Durable（`pi-durable` 包）。它只用 extension API，在普通 coding-agent 会话（session JSONL）之上手搓"崩溃后接着做"。演示最后一段会跑官方实验版 Durable 做对照。
 
 ## 链路
 
+链路由数据结构决定：数据按监测词（"来自搜索"）抓取，所以**研究对象和话题划分都从数据里来**；帖子只有标题，**观点主要在评论里**；帖子和评论都**自带情绪标签**，帖子带**相关性标签**。
+
 ```
-"关于英雄令的舆情"
- 0 解析需求      对象 / 时间 / 平台 / 关注点，没给的用默认（数据中最近 7 天、全平台）
- 1 界定对象      dataset_info + social_search 粗搜 + get_post 抽读 → 是什么、别名、排除项 → research/plan.md
- 2 摸底          social_trend 按天 / 按平台 → 找评论突增、消极占比升高的拐点
- 3 拆题          Q1 声量与情绪  Q2 讨论焦点  Q3 风险与负面  Q4 关键传播节点 → plan.md，checkpoint
- 4 逐题取证      social_search / search_comments / get_post → research/qN-*.md，每题 checkpoint
- 5 写报告        （切强模型）→ report/report.md
- 6 自检          报告里的每个 ID、每个数字都能在证据笔记和工具结果里找到
+"分析一下最近 7 天的舆情"
+ 0 解析需求      对象（可不给，从数据推断）/ 时间（默认最近 7 天）/ 关注点（默认综合，问风险则风险优先）
+ 1 数据盘点      dataset_info → 监测对象、监测话题、平台、样本量、排除不相关帖子
+ 2 全局概览      social_trend 按天 / 按平台 / 按监测词 → 拐点、主平台、最热和最负面的话题
+ 3 拆题          话题 = 监测词（按评论量取前 4，其余并为"其他"）→ research/plan.md，checkpoint
+ 4 逐话题深挖    social_search 最热 + 最负面 → get_post 读高赞评论 → search_comments 归纳正负观点、
+                 用关键词命中数估规模 → research/topics/N-监测词.md，每个话题 checkpoint
+ 5 风险扫描      跨话题：最高赞消极评论、最负面帖子、拐点 → research/risk.md（风险 / 等级 / 依据）
+ 6 写报告        （切强模型）→ report/report.md
+ 7 自检          每个 ID、每个数字都能在笔记和工具结果里找到；没有评论用户昵称
 ```
+
+进度条单位：每个话题 + 风险扫描 + 报告。话题数随数据变化，由 agent 在第 3 步决定。
 
 ## 6 个能力在哪里体现
 
@@ -78,10 +84,10 @@ npm run start:new                          # 浏览器打开 http://localhost:51
 | 工具 | 作用 |
 |---|---|
 | `dataset_info` | 数据概况：总量、平台、时间范围、来自搜索、相关性取值 |
-| `social_search` | 搜帖子：关键词（匹配标题和来自搜索）、平台、时间、情绪、相关性；按评论数 / 消极评论数 / 时间排序 |
+| `social_search` | 搜帖子：关键词、监测词、平台、时间、情绪、相关性；按评论数 / 消极评论数 / 时间排序 |
 | `get_post` | 帖子详情 + 高赞评论 |
-| `search_comments` | 搜评论：关键词、所属帖子、平台、时间、情绪；按点赞 / 时间排序 |
-| `social_trend` | 按天或按平台统计新帖、新评论、评论情绪分布 |
+| `search_comments` | 搜评论：关键词、所属帖子、监测词、相关性、平台、时间、情绪；按点赞 / 时间排序 |
+| `social_trend` | 按天 / 平台 / 监测词统计新帖、新评论、评论情绪分布 |
 
 所有输出都是精简文本；评论作者不输出（脱敏）。每次查询按请求内容缓存（写临时文件再 rename，kill 不会留下半个缓存）：恢复后重复的查询直接命中，Inspector 上显示"缓存命中"。
 
@@ -101,7 +107,7 @@ data/real/                真实数据集（scripts/import-excel.py 导入，不
 workspace/                agent 的工作目录（cwd）
   AGENTS.md               项目约定，Pi 自动加载进上下文
   .pi/skills/opinion-research/SKILL.md
-  research/ report/       运行产物：plan.md（研究范围 + 4 个问题）、4 份证据笔记、最终报告
+  research/ report/       运行产物：plan.md（研究范围 + 话题清单）、topics/ 话题笔记、risk.md、最终报告
 models.json               国内 OpenAI 兼容 provider（DeepSeek、通义）
 ```
 
@@ -110,10 +116,10 @@ models.json               国内 OpenAI 兼容 provider（DeepSeek、通义）
 | 段落 | 时长 | 操作 | 亮起的能力 |
 |---|---|---|---|
 | 3.1 地图 | 1 分钟 | 放 agent 循环阶段图，介绍 Inspector 的 6 个徽章 | — |
-| 3.2 一句话进去 | 3 分钟 | 输入"关于英雄令的舆情"。先让观众猜第一步会做什么；展开 System Prompt；看它读 skill、调 dataset_info、粗搜、抽读帖子，自己判断"英雄令"是什么，写出研究范围 | ① ⑥ ② |
-| 3.3 插话 | 2 分钟 | Q2 进行中填"只看抖音和小红书"点"插话（steer）"；再填"最后给运营 3 条应对建议"点"发送"（变 follow-up） | ① |
-| 3.4 崩溃与恢复 | 4 分钟 | Q3 进行中 `npm run kill`；`npm start`；看恢复卡片、会话树恢复点、已完成的问题被跳过、重复查询"缓存命中"、"上下文修补"卡片 | ③ ② |
-| 3.5 换模型 + 压缩 | 3 分钟 | 写报告前切到模型 B；7000+ 条评论很容易把上下文撑满，看自动或手动压缩 | ④ ⑤ |
+| 3.2 一句话进去 | 3 分钟 | 输入"分析一下最近 7 天的舆情"。先让观众猜第一步做什么；展开 System Prompt；看它读 skill、盘点数据、自己认出监测对象、按监测词拆出话题，写出 plan.md | ① ⑥ ② |
+| 3.3 插话 | 2 分钟 | 话题深挖中填"只看抖音和小红书"点"插话（steer）"；再填"最后给运营 3 条应对建议"点"发送"（变 follow-up） | ① |
+| 3.4 崩溃与恢复 | 4 分钟 | 第 2～3 个话题进行中 `npm run kill`；`npm start`；看恢复卡片、会话树恢复点、已完成的话题被跳过、重复查询"缓存命中"、"上下文修补"卡片 | ③ ② |
+| 3.5 换模型 + 压缩 | 3 分钟 | 写报告前切到模型 B；几千条评论很容易把上下文撑满，看自动或手动压缩；话题笔记在文件里，压缩不丢 | ④ ⑤ |
 | 3.6 对照官方 Durable | 2 分钟 | 跑官方实验版 durable coding agent，工具执行中 kill，`--continue` 重启 | — |
 
 kill 时机：`DEMO_STEP_DELAY_MS`（每次工具调用前停顿）+ `SOCIAL_LATENCY_MS`（每次查询的模拟延迟）。
@@ -150,11 +156,11 @@ node --import ./packages/coding-agent/src/experimental/source-resolver.ts \
 - [ ] `npm run import -- 真实数据.xlsx` 的概况输出里，情绪识别失败、时间格式未识别、找不到所属帖子都是 0；然后 `SMOKE_DATASET=real npm test` 通过
 - [ ] 启动后出现 Skills 卡片 `opinion-research` 和"舆情数据源"卡片。没有 skill 卡片，说明项目信任没生效，可以把 skill 目录复制到 `~/.pi/agent/skills/`
 - [ ] 模型能调用 5 个 social 工具（自定义工具卡片为紫色"② Extension"），不会用 bash 去读 data/ 目录
-- [ ] 第 1 步写出的 plan.md 里，对"英雄令"的界定、别名、排除项是对的
+- [ ] plan.md 里认出的监测对象、话题划分（来自监测词）、排除的不相关帖子数是对的
 - [ ] 第一个 turn 前出现 System Prompt 卡片
-- [ ] 每完成一个问题，进度条前进，会话树出现 `PROGRESS` 节点
+- [ ] 每完成一个话题，进度条前进，会话树出现 `PROGRESS` 节点
 - [ ] 运行中点"插话"，出现 steer 卡片，后续行为随之改变
-- [ ] kill 后 `npm start`：出现恢复卡片；重复的查询显示"缓存命中"；已完成的问题被跳过
+- [ ] kill 后 `npm start`：出现恢复卡片；重复的查询显示"缓存命中"；已完成的话题被跳过
 - [ ] **重点**：kill 时卡在工具执行中，恢复后看是否出现"上下文修补"卡片。如果 1.1.0 自己就补上了悬空的 toolResult，这张卡片不会出现，讲法改成"Pi 自己在哪里处理了"
 - [ ] 切换模型后，下一轮 `message_end` 的 provider 变了
 - [ ] 手动压缩成功，会话树出现 `COMPACTION` 节点

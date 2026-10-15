@@ -61,8 +61,13 @@ export class LocalProvider implements SocialProvider {
     }
   }
 
-  private matchPost(p: Post, q: { keyword?: string; platforms?: string[]; start?: string; end?: string }) {
+  private matchPost(
+    p: Post,
+    q: { keyword?: string; query?: string; relevance?: string; platforms?: string[]; start?: string; end?: string },
+  ) {
     if (!matchKeyword(`${p.title} ${p.source_query ?? ""}`, q.keyword)) return false;
+    if (q.query && (p.source_query ?? "") !== q.query) return false;
+    if (q.relevance && String(p.relevance ?? "") !== q.relevance) return false;
     if (q.platforms?.length && !q.platforms.includes(p.platform)) return false;
     return inRange(p.published_at, q.start, q.end);
   }
@@ -91,12 +96,7 @@ export class LocalProvider implements SocialProvider {
 
   async searchPosts(q: PostQuery): Promise<Page<Post>> {
     await sleep(this.latency);
-    const hits = this.posts.filter(
-      (p) =>
-        this.matchPost(p, q) &&
-        (!q.sentiment || p.sentiment === q.sentiment) &&
-        (!q.relevance || String(p.relevance ?? "") === q.relevance),
-    );
+    const hits = this.posts.filter((p) => this.matchPost(p, q) && (!q.sentiment || p.sentiment === q.sentiment));
     const sorters = {
       comments: (a: Post, b: Post) => b.comment_count - a.comment_count,
       negative: (a: Post, b: Post) => b.comment_sentiment.negative - a.comment_sentiment.negative,
@@ -119,8 +119,14 @@ export class LocalProvider implements SocialProvider {
   async searchComments(q: CommentQuery): Promise<Page<Comment>> {
     await sleep(this.latency);
     const pool = q.post_id ? (this.byPost.get(q.post_id) ?? []) : this.comments;
+    const postOk = (c: Comment) => {
+      if (!q.query && !q.relevance) return true;
+      const p = this.postById.get(c.post_id);
+      return !!p && this.matchPost(p, { query: q.query, relevance: q.relevance });
+    };
     const hits = pool.filter(
       (c) =>
+        postOk(c) &&
         matchKeyword(c.content, q.keyword) &&
         (!q.platforms?.length || q.platforms.includes(c.platform)) &&
         (!q.sentiment || c.sentiment === q.sentiment) &&
@@ -135,6 +141,8 @@ export class LocalProvider implements SocialProvider {
   async trend(q: TrendQuery): Promise<TrendRow[]> {
     await sleep(this.latency);
     const by = q.group_by ?? "day";
+    const keyOf = (date: string, platform: string, query?: string) =>
+      by === "day" ? day(date) : by === "platform" ? platform : query || "(无)";
     const rows = new Map<string, TrendRow>();
     const row = (key: string) => {
       let r = rows.get(key);
@@ -143,13 +151,13 @@ export class LocalProvider implements SocialProvider {
     };
     const postIds = new Set<string>();
     for (const p of this.posts) {
-      if (!this.matchPost(p, { keyword: q.keyword, platforms: q.platforms })) continue;
+      if (!this.matchPost(p, { keyword: q.keyword, query: q.query, relevance: q.relevance, platforms: q.platforms })) continue;
       postIds.add(p.id);
-      if (inRange(p.published_at, q.start, q.end)) row(by === "day" ? day(p.published_at) : p.platform).posts++;
+      if (inRange(p.published_at, q.start, q.end)) row(keyOf(p.published_at, p.platform, p.source_query)).posts++;
     }
     for (const c of this.comments) {
       if (!postIds.has(c.post_id) || !inRange(c.published_at, q.start, q.end)) continue;
-      const r = row(by === "day" ? day(c.published_at) : c.platform);
+      const r = row(keyOf(c.published_at, c.platform, this.postById.get(c.post_id)?.source_query));
       r.comments++;
       r[c.sentiment ?? "neutral"]++;
     }

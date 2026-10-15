@@ -45,6 +45,16 @@ assert.ok(detail && detail.top_comments.every((c) => c.post_id === p1.items[0].i
 assert.equal(await local.getPost("NOPE-1"), null);
 const trend = await local.trend({});
 assert.ok(trend.length > 0, "趋势为空");
+const byQuery = await local.trend({ group_by: "query" });
+assert.equal(byQuery.reduce((s, r) => s + r.posts, 0), posts.length, "按监测词统计的帖子数应等于总数");
+const q0 = info.source_queries && Object.keys(info.source_queries)[0];
+if (q0) {
+  const qp = await local.searchPosts({ query: q0, limit: 20 });
+  assert.ok(qp.items.every((p) => p.source_query === q0), "监测词过滤失效");
+  const qc = await local.searchComments({ query: q0, limit: 30 });
+  const qIds = new Set((await local.searchPosts({ query: q0, limit: 20, offset: 0 })).items.map((p) => p.id));
+  assert.ok(qc.items.every((c) => qIds.has(c.post_id) || qp.total > 20), "评论的监测词过滤失效");
+}
 const byPlatform = await local.trend({ group_by: "platform" });
 assert.equal(byPlatform.reduce((s, r) => s + r.posts, 0), posts.length, "按平台统计的帖子数应等于总数");
 

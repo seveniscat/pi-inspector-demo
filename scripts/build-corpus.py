@@ -227,7 +227,13 @@ PLAT = {"xiaohongshu": "小红书", "weibo": "微博", "douyin": "抖音"}
 FILLER = {
     "positive": ["桂花香确实很真", "燕麦奶好顺", "已经回购了", "杯套太好看了", "19.9 很值", "比想象中好喝"],
     "neutral": ["求问哪个城市有", "还没喝过，观望", "有人对比过鹿岛吗", "插眼", "明天去试试", "热量高吗"],
-    "negative": ["太甜了喝不完", "恢复原价就不买了", "杭州那事还没说法吧", "客服说封口膜太离谱", "品控堪忧", "先观望一阵"],
+    "negative": ["太甜了喝不完", "恢复原价就不买了", "齁甜", "有点贵", "先观望一阵"],
+}
+# 风险事件相关帖子下的评论用这一组（只出现在事件之后，避免时间线穿帮）
+RISK_FILLER = {
+    "positive": ["处理得还算快", "说明写得挺清楚", "上海这边没问题"],
+    "neutral": ["坐等官方说明", "其他城市有吗", "关注后续"],
+    "negative": ["客服说封口膜太离谱", "品控堪忧", "杭州那事还没说法吧", "不敢喝了", "退款就完事了？"],
 }
 RISK = ("异物", "塑料", "封口膜", "泵头", "暂停")
 def sent_of(text, base):
@@ -251,7 +257,8 @@ for p in posts:
         s = random.choices(["positive", "neutral", "negative"],
                            weights={"positive": (6, 3, 1), "neutral": (3, 5, 2), "negative": (1, 3, 6)}[p["sentiment"]])[0]
         t = dt_shift(p["created_at"], random.randint(5, 600))
-        comments.append((random.choice(FILLER[s]), random.randint(0, max(3, p["likes"] // 200)), s, t))
+        pool = RISK_FILLER if risk else FILLER
+        comments.append((random.choice(pool[s]), random.randint(0, max(3, p["likes"] // 200)), s, t))
     cs = {"positive": 0, "neutral": 0, "negative": 0}
     for text, likes, s, t in comments:
         cs[s] += 1

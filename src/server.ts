@@ -40,11 +40,7 @@ const KEEP_RECENT = Number(process.env.DEMO_KEEP_RECENT_TOKENS || 0);
 const RAW_MODE = process.env.SOCIAL_MODE || "local";
 const SOCIAL_MODE = (RAW_MODE === "mock" ? "local" : RAW_MODE) as "local" | "live" | "replay";
 const SOCIAL_DATASET = RAW_MODE === "mock" ? "demo" : process.env.SOCIAL_DATASET || "demo";
-const DEFAULT_TASK =
-  process.env.DEMO_TASK ||
-  (SOCIAL_MODE === "local" && SOCIAL_DATASET === "demo"
-    ? "关于栖木咖啡桂花燕麦拿铁的舆情"
-    : "关于英雄令的舆情");
+const DEFAULT_TASK = process.env.DEMO_TASK || "分析一下最近 7 天的舆情，输出一份分析报告。";
 
 fs.writeFileSync(path.join(ROOT, ".demo.pid"), String(process.pid));
 const bus = new EventLog(path.join(ROOT, "logs", "events.jsonl"));
@@ -176,8 +172,8 @@ function send(text: string) {
 
 // ── 6. HTTP：静态页 + SSE + 控制接口 ──
 const RESUME_PROMPT =
-  "进程刚才被意外终止，现在已经恢复。请先查看 research/plan.md 以及 research/、report/ 目录，确认研究范围和哪些问题已经完成，" +
-  "然后从中断处继续舆情研究，不要重新界定范围，也不要重复已完成的问题。";
+  "进程刚才被意外终止，现在已经恢复。请先查看 research/plan.md 以及 research/topics/、research/risk.md、report/，确认哪些话题已经完成，" +
+  "然后从中断处继续舆情分析，不要重新盘点和拆题，也不要重复已完成的话题。";
 
 async function readBody(req: http.IncomingMessage): Promise<any> {
   let raw = "";
@@ -260,7 +256,7 @@ const server = http.createServer(async (req, res) => {
       if (busy) return json(res, 409, { error: "agent 正在运行，等它停下再压缩" });
       bus.emit({ type: "manual_compact_request" });
       session
-        .compact("保留研究范围（对象、别名、排除词、时间、平台）、4 个研究问题及完成状态、关键证据的帖子 / 评论 ID、风险事件时间线。")
+        .compact("保留研究范围（监测对象、时间、平台、样本量、排除项）、话题清单及完成状态、各话题的主要观点和证据 ID、已发现的风险点。")
         .then((r: any) => bus.emit({ type: "manual_compact_done", tokensBefore: r?.tokensBefore }))
         .catch((err: any) => bus.emit({ type: "error", where: "compact", message: String(err?.message ?? err) }));
       return json(res, 200, { ok: true });
