@@ -16,7 +16,8 @@ export interface TreeNode {
   isLeaf: boolean;
 }
 
-export function readSessionTree(file: string | undefined, leafId?: string | null) {
+/** untilMs：只看这个时间点之前写入的条目（回放模式用，让会话树随回放进度生长） */
+export function readSessionTree(file: string | undefined, leafId?: string | null, untilMs?: number) {
   if (!file || !fs.existsSync(file)) return { file, header: null, nodes: [] as TreeNode[] };
   const lines = fs.readFileSync(file, "utf8").split("\n").filter(Boolean);
   let header: any = null;
@@ -25,7 +26,7 @@ export function readSessionTree(file: string | undefined, leafId?: string | null
     try {
       const obj = JSON.parse(line);
       if (obj.type === "session") header = obj;
-      else if (obj.id) entries.push(obj);
+      else if (obj.id && (untilMs === undefined || !obj.timestamp || Date.parse(obj.timestamp) <= untilMs)) entries.push(obj);
     } catch {
       // 最后一行可能写了一半（被 kill 时），跳过
     }

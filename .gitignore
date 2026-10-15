@@ -10,3 +10,5 @@ data/real/
 data/*.xlsx
 *.xlsx
 __pycache__/
+# 演示存档（可能含真实数据）
+runs/

@@ -28,7 +28,7 @@
 | # | 能力 | 现场看到什么 | 对应代码 |
 |---|---|---|---|
 | ① | Agent Loop | 按 turn 展示"看趋势 → 拆问题 → 搜索 → 读帖 → 写笔记"；下一步由模型自己决定；steer / follow-up 插话 | `src/server.ts` 订阅事件 |
-| ② | Extension | **social**：把舆情数据包成 `dataset_info` / `social_search` / `get_post` / `search_comments` / `social_trend` 五个工具；**resume**：checkpoint + 恢复时补上被打断的工具结果 | `src/extensions/social.ts`、`resume.ts` |
+| ② | Extension | 三个小扩展各管一件事，不改 Pi 源码：**social** 把舆情数据包成 5 个工具，报告写完自动做引用核验；**guard** 用 `tool_call` 钩子拦截越权操作（Pi 默认没有权限系统）；**resume** 记 checkpoint、恢复时补上被打断的工具结果 | `src/extensions/social.ts`、`guard.ts`、`resume.ts` |
 | ③ | Session 树 | 右侧直接读 JSONL 渲染会话树；恢复点、leaf 高亮 | `src/session-tree.ts` |
 | ④ | 多模型 | 采集阶段用便宜模型，写报告前切到强模型，历史不丢 | `models.json` + `/api/model` |
 | ⑤ | Compaction | 评论原文把上下文撑满 → 压缩成结构化摘要；证据在笔记文件里，压缩不丢 | `.env` 压缩阈值 + `/api/compact` |
@@ -54,6 +54,8 @@ npm run start:new                          # 浏览器打开 http://localhost:51
 | `npm run reset` | 清空 research/ report/ logs/ 和查询缓存；加 `-- --all` 连 live 录制一起清 |
 | `npm test` | 数据层冒烟测试（不需要模型 key）；`SMOKE_DATASET=real npm test` 检查导入的数据 |
 | `npm run corpus` | 重新生成 demo 数据集 |
+| `npm run save-run -- <名字>` | 把一次跑通的演示存档到 `runs/<名字>/`（事件、会话文件、研究笔记、报告） |
+| `npm run replay -- runs/<名字> --speed 3` | 倍速回放存档，页面和真实运行一样，不调模型；现场兜底用 |
 | `npm run pi` | 把 resume extension 加载进 pi CLI |
 
 ## 数据
@@ -91,17 +93,34 @@ npm run start:new                          # 浏览器打开 http://localhost:51
 
 所有输出都是精简文本；评论作者不输出（脱敏）。每次查询按请求内容缓存（写临时文件再 rename，kill 不会留下半个缓存）：恢复后重复的查询直接命中，Inspector 上显示"缓存命中"。
 
+## Inspector 上的演示辅助
+
+| 功能 | 作用 | 体现的能力 |
+|---|---|---|
+| **定点崩溃** 按钮 | 下一次查询拿到数据、写进缓存之后，交给模型之前，进程 `SIGKILL` 自己。保证每次都杀在工具执行中，恢复时必然出现"上下文修补"和"缓存命中" | ③ ② |
+| **护栏拦截** 卡片 | guard extension 拦下的操作和原因：直接读原始数据、写到 research/ report/ 之外、bash 联网或删除 | ② |
+| **引用核验** | 报告写入后，`tool_result` 钩子检查里面的 `[ID]` 是否都在数据中，把结果附在工具结果里反馈给模型 | ② |
+| **报告** 抽屉 | 渲染报告；`[ID]` 可点开看原帖 / 原评论（评论作者脱敏）；不存在的 ID 标红划线 | — |
+| 顶部 **cost（按模型）** | 切模型后分别显示两个模型花了多少 | ④ |
+| 顶部 **缓存命中** | 恢复后省掉了几次接口调用 | ② ③ |
+| 压缩卡片里的 **前后对比条** | 压缩前 tokens 和下一轮实际输入 tokens | ⑤ |
+| **回放模式** | `npm run replay`，现场模型或网络出问题时切过去 | — |
+
 ## 目录
 
 ```
 src/
   server.ts               SDK 组装 + HTTP/SSE + 控制接口
-  extensions/social.ts    舆情服务 → 3 个 Pi 工具
+  extensions/social.ts    舆情数据 → 5 个 Pi 工具；定点崩溃；引用核验
+  extensions/guard.ts     权限护栏（tool_call 拦截）
   extensions/resume.ts    checkpoint、恢复、悬空 toolCall 修补、观测点
+  extensions/citations.ts 报告引用提取（核验和回放共用）
   social/                 数据层：types / local（本地数据集）/ live（待填映射）/ cache / normalize
   event-log.ts            事件总线：落盘 logs/events.jsonl + SSE 推送
   session-tree.ts         解析 session JSONL → 会话树
 public/index.html         Pi Agent Inspector（单文件，无构建）
+scripts/replay.ts         倍速回放存档
+scripts/save-run.mjs      存档一次运行
 data/demo/                演示数据集（scripts/build-corpus.py 生成，虚构品牌）
 data/real/                真实数据集（scripts/import-excel.py 导入，不入库）
 workspace/                agent 的工作目录（cwd）
@@ -111,16 +130,21 @@ workspace/                agent 的工作目录（cwd）
 models.json               国内 OpenAI 兼容 provider（DeepSeek、通义）
 ```
 
-## 第三部分演示脚本（约 15 分钟）
+## 第三部分演示脚本（约 17 分钟）
 
-| 段落 | 时长 | 操作 | 亮起的能力 |
-|---|---|---|---|
-| 3.1 地图 | 1 分钟 | 放 agent 循环阶段图，介绍 Inspector 的 6 个徽章 | — |
-| 3.2 一句话进去 | 3 分钟 | 输入"分析一下最近 7 天的舆情"。先让观众猜第一步做什么；展开 System Prompt；看它读 skill、盘点数据、自己认出监测对象、按监测词拆出话题，写出 plan.md | ① ⑥ ② |
-| 3.3 插话 | 2 分钟 | 话题深挖中填"只看抖音和小红书"点"插话（steer）"；再填"最后给运营 3 条应对建议"点"发送"（变 follow-up） | ① |
-| 3.4 崩溃与恢复 | 4 分钟 | 第 2～3 个话题进行中 `npm run kill`；`npm start`；看恢复卡片、会话树恢复点、已完成的话题被跳过、重复查询"缓存命中"、"上下文修补"卡片 | ③ ② |
-| 3.5 换模型 + 压缩 | 3 分钟 | 写报告前切到模型 B；几千条评论很容易把上下文撑满，看自动或手动压缩；话题笔记在文件里，压缩不丢 | ④ ⑤ |
-| 3.6 对照官方 Durable | 2 分钟 | 跑官方实验版 durable coding agent，工具执行中 kill，`--continue` 重启 | — |
+一个任务从头跑到尾，6 个徽章按顺序亮起。每段只讲一个点。
+
+| 段落 | 时长 | 操作 | 要讲的点 | 亮起的能力 |
+|---|---|---|---|---|
+| 3.1 一句话进去 | 3 分钟 | 放 agent 循环阶段图，介绍 6 个徽章；输入"分析一下最近 7 天的舆情"，先让观众猜第一步做什么 | 展开 System Prompt：skill 只有一行描述，AGENTS.md 也在这里；模型自己读 skill、盘点数据、认出监测对象、按监测词拆题，计划写进 `plan.md`（第二部分说的"计划落成文件"） | ① ⑥ ② |
+| 3.2 插话 | 2 分钟 | 第 1 个话题进行中填"只看抖音和小红书"点"插话"；再填"最后给运营 3 条建议"点"发送" | steer 尽快插入当前循环，follow-up 排到本轮结束后 | ① |
+| 3.3 护栏 | 1.5 分钟 | 插话："直接用 bash 统计一下 ../data 里的评论条数" | 卡片"护栏拦截"；模型被拒后改用工具。AGENTS.md 是软约束，`tool_call` 钩子才是硬约束；Pi 默认没有权限系统，边界要自己画 | ② |
+| 3.4 崩溃与恢复 | 4 分钟 | 第 2 个话题开始时点"定点崩溃" → 进程被杀 → `npm start` | 恢复卡片、会话树恢复点、已完成的话题被跳过；"上下文修补"补上被打断的调用；重查同样条件"缓存命中"——数据在崩溃前已落盘 | ③ ② |
+| 3.5 换模型 + 压缩 | 3 分钟 | 点"从断点继续"前切到模型 B；压缩自动触发（或手动点） | 历史不丢；顶部花费按模型拆开；压缩前后对比条；话题笔记在文件里，压缩不丢结论 | ④ ⑤ |
+| 3.6 报告与引用 | 2 分钟 | 报告写完点"报告" | 引用核验 N/N；点任意 ID 看原文；不存在的 ID 标红，核验结果已反馈给模型自检 | ② |
+| 3.7 对照官方 Durable | 1.5 分钟 | 播录屏：官方实验版 durable coding agent，kill 后 `--continue` | 我们在 JSONL 上事后补救，官方在存储层每一步先落盘 | — |
+
+**现场兜底**：彩排时跑通一次后 `npm run save-run -- final`；现场出问题直接 `npm run replay -- runs/final --speed 3`。
 
 kill 时机：`DEMO_STEP_DELAY_MS`（每次工具调用前停顿）+ `SOCIAL_LATENCY_MS`（每次查询的模拟延迟）。
 
@@ -155,7 +179,11 @@ node --import ./packages/coding-agent/src/experimental/source-resolver.ts \
 - [ ] `npm install` 能装上 `@earendil-works/pi-coding-agent@^1.1.0`
 - [ ] `npm run import -- 真实数据.xlsx` 的概况输出里，情绪识别失败、时间格式未识别、找不到所属帖子都是 0；然后 `SMOKE_DATASET=real npm test` 通过
 - [ ] 启动后出现 Skills 卡片 `opinion-research` 和"舆情数据源"卡片。没有 skill 卡片，说明项目信任没生效，可以把 skill 目录复制到 `~/.pi/agent/skills/`
-- [ ] 模型能调用 5 个 social 工具（自定义工具卡片为紫色"② Extension"），不会用 bash 去读 data/ 目录
+- [ ] 模型能调用 5 个 social 工具（自定义工具卡片为紫色"② Extension"）
+- [ ] **护栏**：插话让它用 bash 读 ../data，出现"护栏拦截"卡片，模型收到原因后改用工具。如果卡片不出现，确认 1.1.0 内置工具名是否为 `bash` / `read` / `write` / `edit`、参数名是否为 `command` / `path`（guard.ts 按这些写的）
+- [ ] **定点崩溃**：点按钮后下一次查询进程被杀；`npm start` 后出现恢复卡片和"上下文修补"，重查同条件显示"缓存命中"
+- [ ] **引用核验**：报告写完出现"引用核验"卡片，模型的工具结果里带有核验结论（依赖 `tool_result` 钩子返回 `content` 补丁）
+- [ ] **回放**：`npm run save-run -- test` 后 `npm run replay -- runs/test --speed 3` 能完整播放，会话树随进度生长
 - [ ] plan.md 里认出的监测对象、话题划分（来自监测词）、排除的不相关帖子数是对的
 - [ ] 第一个 turn 前出现 System Prompt 卡片
 - [ ] 每完成一个话题，进度条前进，会话树出现 `PROGRESS` 节点
@@ -163,7 +191,7 @@ node --import ./packages/coding-agent/src/experimental/source-resolver.ts \
 - [ ] kill 后 `npm start`：出现恢复卡片；重复的查询显示"缓存命中"；已完成的话题被跳过
 - [ ] **重点**：kill 时卡在工具执行中，恢复后看是否出现"上下文修补"卡片。如果 1.1.0 自己就补上了悬空的 toolResult，这张卡片不会出现，讲法改成"Pi 自己在哪里处理了"
 - [ ] 切换模型后，下一轮 `message_end` 的 provider 变了
-- [ ] 手动压缩成功，会话树出现 `COMPACTION` 节点
+- [ ] 手动压缩成功，会话树出现 `COMPACTION` 节点，压缩卡片下出现前后对比条
 - [ ] 报告里每条结论都有帖子 / 评论 ID，抽查 2～3 个能在数据里找到；报告里没有评论用户的昵称
 - [ ] 官方实验版 Durable 能 kill 后 `--continue` 恢复
 - [ ] 全程录屏一份备用

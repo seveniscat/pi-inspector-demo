@@ -15,7 +15,9 @@
     "corpus": "python3 scripts/build-corpus.py",
     "pi": "cd workspace && pi -e ../src/extensions/resume.ts",
     "test": "node --experimental-strip-types --no-warnings scripts/smoke.ts",
-    "import": "python3 scripts/import-excel.py"
+    "import": "python3 scripts/import-excel.py",
+    "save-run": "node scripts/save-run.mjs",
+    "replay": "tsx scripts/replay.ts"
   },
   "dependencies": {
     "@earendil-works/pi-coding-agent": "^1.1.0",

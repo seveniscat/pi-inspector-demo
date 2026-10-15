@@ -11,7 +11,10 @@ Pi 技术分享的演示项目：用 Pi SDK 嵌入 agent，做一个可中断、
 
 - `src/server.ts`：SDK 组装、SSE、控制接口（/api/prompt、steer、resume、model、compact、abort）
 - `src/extensions/social.ts`：数据 → 5 个工具 `dataset_info` / `social_search` / `get_post` / `search_comments` / `social_trend`
+- `src/extensions/guard.ts`：权限护栏，`tool_call` 拦截（读原始数据、越界写、bash 联网 / 删除）
 - `src/extensions/resume.ts`：checkpoint、恢复、悬空 toolCall 修补、观测事件（`resume_*`）
+- `social.ts` 里还有：定点崩溃（`CrashSwitch`）、报告引用核验（`tool_result` 钩子）
+- `scripts/replay.ts` + `scripts/save-run.mjs`：演示存档与倍速回放（`runs/` 不入库）
 - `src/social/`：数据层，"帖子 + 评论"两张表模型（types.ts）。`local`（data/<dataset>/posts.json + comments.json）/ `live`（远程接口，字段映射待填）/ `replay`（只读缓存）；`cache.ts` 按请求缓存
 - `public/index.html`：Inspector，单文件无构建；事件类型改动要同时改这里的 `render()`
 - `workspace/`：agent 的 cwd。skill 在 `.pi/skills/opinion-research/`，项目约定在 `AGENTS.md`
@@ -29,6 +32,6 @@ Pi 技术分享的演示项目：用 Pi SDK 嵌入 agent，做一个可中断、
 
 - Pi 包是 `@earendil-works/pi-coding-agent`，基线 1.1.0。API 以官方仓库 earendil-works/pi 的 docs 为准，不确定的地方用 `as any` 并在 README 自检清单里加一条
 - 演示语料是虚构品牌，页面和报告里要能看出是演示数据
-- 不要提交 `.env`、`data/real/`、`*.xlsx`、`data/cache/`、`logs/`、`workspace/research/`、`workspace/report/`
+- 不要提交 `.env`、`data/real/`、`*.xlsx`、`data/cache/`、`logs/`、`runs/`、`workspace/research/`、`workspace/report/`
 - 工具输出不带评论作者（脱敏）；报告不写评论用户昵称
 - 提交信息用中文，conventional commits 前缀（feat/fix/docs/chore）

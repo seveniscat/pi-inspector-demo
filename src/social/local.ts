@@ -116,6 +116,14 @@ export class LocalProvider implements SocialProvider {
     return { post, top_comments: top };
   }
 
+  /** 按 ID 查帖子或评论（报告面板点 ID 看原文用，不经过 agent） */
+  lookup(id: string): { kind: "post"; post: Post } | { kind: "comment"; comment: Comment; post?: Post } | null {
+    const p = this.postById.get(id);
+    if (p) return { kind: "post", post: p };
+    const c = this.comments.find((x) => x.id === id);
+    return c ? { kind: "comment", comment: c, post: this.postById.get(c.post_id) } : null;
+  }
+
   async searchComments(q: CommentQuery): Promise<Page<Comment>> {
     await sleep(this.latency);
     const pool = q.post_id ? (this.byPost.get(q.post_id) ?? []) : this.comments;

@@ -10,10 +10,13 @@
  * - 每次调用都过缓存（social/cache.ts）：恢复后重复查询直接命中，不重复打外部服务
  * - details 里带 cached / mode / ms，Inspector 据此显示"缓存命中"
  */
+import fs from "node:fs";
 import path from "node:path";
 import type { ExtensionAPI } from "@earendil-works/pi-coding-agent";
 import { Type } from "typebox";
 import { CachedProvider, type Op } from "../social/cache.ts";
+import { extractCitations } from "./citations.ts";
+export { extractCitations };
 import { LiveProvider } from "../social/live.ts";
 import { LocalProvider } from "../social/local.ts";
 import {
@@ -31,6 +34,19 @@ import {
 
 export type Emit = (event: Record<string, unknown>) => void;
 
+/** 定点崩溃开关：armed 时，下一次查询在"结果已写入缓存、还没返回给模型"的时刻 SIGKILL 自己 */
+export interface CrashSwitch {
+  armed: boolean;
+}
+
+export interface CitationCheck {
+  path: string;
+  total: number;
+  valid: string[];
+  invalid: string[];
+  at: string;
+}
+
 export interface SocialOptions {
   mode: "local" | "live" | "replay";
   dataDir: string; // data/
@@ -38,6 +54,22 @@ export interface SocialOptions {
   apiBase?: string;
   apiToken?: string;
   latencyMs?: number;
+  crash?: CrashSwitch;
+  /** 引用核验结果回调（server 用来给报告面板） */
+  onCitationCheck?: (c: CitationCheck) => void;
+}
+
+
+/** 本地数据集的 ID 索引，用于引用核验；live / replay 模式没有全量数据，不核验 */
+function loadIdIndex(opts: SocialOptions): { posts: Set<string>; comments: Set<string> } | null {
+  if (opts.mode !== "local") return null;
+  const dir = path.join(opts.dataDir, opts.dataset || "demo");
+  try {
+    const read = (f: string) => JSON.parse(fs.readFileSync(path.join(dir, f), "utf8")) as { id: string }[];
+    return { posts: new Set(read("posts.json").map((p) => p.id)), comments: new Set(read("comments.json").map((c) => c.id)) };
+  } catch {
+    return null;
+  }
 }
 
 export function createProvider(opts: SocialOptions): CachedProvider {
@@ -152,8 +184,42 @@ export function createSocialExtension(emit: Emit, opts: SocialOptions) {
     async function run<T>(tool: string, op: Op, params: any) {
       const r = await provider.run<T>(op, params);
       emit({ type: "social_call", tool, params, cached: r.cached, mode: provider.mode, ms: r.ms });
+      if (opts.crash?.armed && op !== "info") {
+        // 演示用：数据已经查到并落进缓存，但结果还没交给模型 —— 这一刻进程被杀
+        opts.crash.armed = false;
+        emit({ type: "crash_fired", tool, params, cachedBefore: r.cached });
+        await new Promise((res) => setTimeout(res, 400)); // 给 SSE 一点时间把事件推出去
+        process.kill(process.pid, "SIGKILL");
+        await new Promise(() => {}); // 等死，不返回
+      }
       return r;
     }
+
+    // ── 引用核验：写 / 改报告后，检查里面的 ID 是否真实存在，并把结果回馈给模型 ──
+    let idIndex: ReturnType<typeof loadIdIndex> | undefined;
+    pi.on("tool_result", (event: any, ctx: any) => {
+      if (event.toolName !== "write" && event.toolName !== "edit") return undefined;
+      const rel = String(event.input?.path ?? event.input?.file_path ?? "");
+      if (!/(^|\/)report\/[^/]+\.md$/.test(rel) || event.isError) return undefined;
+      if (idIndex === undefined) idIndex = loadIdIndex(opts);
+      if (!idIndex) return undefined;
+      let md = "";
+      try {
+        md = fs.readFileSync(path.resolve(ctx?.cwd ?? process.cwd(), rel), "utf8");
+      } catch {
+        return undefined;
+      }
+      const ids = extractCitations(md);
+      const valid = ids.filter((id) => idIndex!.posts.has(id) || idIndex!.comments.has(id));
+      const invalid = ids.filter((id) => !valid.includes(id));
+      const check: CitationCheck = { path: rel, total: ids.length, valid, invalid, at: new Date().toISOString() };
+      emit({ type: "citation_check", ...check });
+      opts.onCitationCheck?.(check);
+      const note = invalid.length
+        ? `[引用核验] 报告中共 ${ids.length} 个 ID，${valid.length} 个在数据中存在；以下 ${invalid.length} 个不存在，请核对后修正或删除：${invalid.join("、")}`
+        : `[引用核验] 报告中共 ${ids.length} 个 ID，全部在数据中存在。`;
+      return { content: [...(event.content ?? []), { type: "text", text: note }] };
+    });
     const meta = (r: { cached: boolean; ms: number }, extra: object = {}) => ({ cached: r.cached, mode: provider.mode, ms: r.ms, ...extra });
 
     pi.registerTool({

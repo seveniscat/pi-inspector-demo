@@ -16,8 +16,10 @@ import {
   SettingsManager,
 } from "@earendil-works/pi-coding-agent";
 import { EventLog, normalizePiEvent } from "./event-log.ts";
+import { createGuardExtension } from "./extensions/guard.ts";
 import { createResumeExtension } from "./extensions/resume.ts";
-import { createSocialExtension } from "./extensions/social.ts";
+import { createSocialExtension, extractCitations, type CitationCheck, type CrashSwitch } from "./extensions/social.ts";
+import { LocalProvider } from "./social/local.ts";
 import { readSessionTree } from "./session-tree.ts";
 
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
@@ -69,8 +71,12 @@ if (Object.keys(compactionOverrides).length) {
   (settingsManager as any).applyOverrides({ compaction: compactionOverrides });
 }
 
-// ── 3. 资源：两个 inline extension + 工作区里的 skill / AGENTS.md ──
-//    social：把舆情查询服务包成 3 个工具；resume：checkpoint + 崩溃恢复
+// ── 3. 资源：三个 inline extension + 工作区里的 skill / AGENTS.md ──
+//    social：舆情数据 → 5 个工具 + 引用核验；guard：权限护栏；resume：checkpoint + 崩溃恢复
+const crash: CrashSwitch = { armed: false };
+let lastCitation: CitationCheck | null = null;
+// 报告面板点 ID 看原文：直接查本地数据集，不经过 agent
+const evidence = SOCIAL_MODE === "local" ? new LocalProvider(path.join(ROOT, "data", SOCIAL_DATASET)) : null;
 const resourceLoader = new DefaultResourceLoader({
   cwd: WORKSPACE,
   settingsManager,
@@ -84,8 +90,11 @@ const resourceLoader = new DefaultResourceLoader({
         apiBase: process.env.SOCIAL_API_BASE,
         apiToken: process.env.SOCIAL_API_TOKEN,
         latencyMs: Number(process.env.SOCIAL_LATENCY_MS || process.env.SOCIAL_MOCK_LATENCY_MS || 0),
+        crash,
+        onCitationCheck: (c) => (lastCitation = c),
       }),
     },
+    { name: "guard", factory: createGuardExtension(bus.emit, { workspace: WORKSPACE }) },
     { name: "resume", factory: createResumeExtension(bus.emit, { stepDelayMs: STEP_DELAY, trustedCwd: WORKSPACE }) },
   ],
 } as any);
@@ -208,6 +217,7 @@ const server = http.createServer(async (req, res) => {
         skills: skills.map((s) => s.name),
         socialMode: SOCIAL_MODE,
         socialDataset: SOCIAL_DATASET,
+        crashArmed: crash.armed,
         defaultTask: DEFAULT_TASK,
       });
     }
@@ -260,6 +270,36 @@ const server = http.createServer(async (req, res) => {
         .then((r: any) => bus.emit({ type: "manual_compact_done", tokensBefore: r?.tokensBefore }))
         .catch((err: any) => bus.emit({ type: "error", where: "compact", message: String(err?.message ?? err) }));
       return json(res, 200, { ok: true });
+    }
+
+    // 定点崩溃：下一次查询拿到结果、写进缓存之后，交给模型之前，进程 SIGKILL 自己
+    if (req.method === "POST" && url.pathname === "/api/crash") {
+      const { armed } = await readBody(req);
+      crash.armed = armed !== false;
+      bus.emit({ type: "crash_armed", armed: crash.armed });
+      return json(res, 200, { ok: true, armed: crash.armed });
+    }
+
+    if (req.method === "GET" && url.pathname === "/api/report") {
+      const file = path.join(WORKSPACE, "report", "report.md");
+      const markdown = fs.existsSync(file) ? fs.readFileSync(file, "utf8") : null;
+      // 进程重启后 lastCitation 会丢，这里按当前文件现算一次
+      let citation = lastCitation;
+      if (markdown && evidence) {
+        const ids = extractCitations(markdown);
+        const valid = ids.filter((id) => evidence.lookup(id));
+        citation = { path: "report/report.md", total: ids.length, valid, invalid: ids.filter((id) => !valid.includes(id)), at: new Date().toISOString() };
+      }
+      return json(res, 200, { markdown, citation, demo: SOCIAL_DATASET === "demo" });
+    }
+
+    if (req.method === "GET" && url.pathname === "/api/evidence") {
+      const id = url.searchParams.get("id") ?? "";
+      const hit = evidence?.lookup(id) ?? null;
+      if (!hit) return json(res, 404, { error: `数据中没有 ${id}` });
+      // 评论作者脱敏
+      if (hit.kind === "comment") return json(res, 200, { ...hit, comment: { ...hit.comment, author: "（已脱敏）" } });
+      return json(res, 200, hit);
     }
 
     if (req.method === "POST" && url.pathname === "/api/abort") {

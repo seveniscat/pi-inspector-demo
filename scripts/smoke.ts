@@ -9,6 +9,8 @@ import os from "node:os";
 import path from "node:path";
 import { CachedProvider, stableKey } from "../src/social/cache.ts";
 import { LocalProvider } from "../src/social/local.ts";
+import { checkToolCall } from "../src/extensions/guard.ts";
+import { extractCitations } from "../src/extensions/citations.ts";
 
 const root = path.resolve(path.dirname(new URL(import.meta.url).pathname), "..");
 const dataset = process.env.SMOKE_DATASET || "demo";
@@ -80,5 +82,21 @@ const replay = new CachedProvider(cdir, null, "replay");
 assert.equal((await replay.run("searchPosts", q)).cached, true);
 await assert.rejects(() => replay.run("searchPosts", { keyword: "从没查过" }), /replay/);
 fs.rmSync(cdir, { recursive: true, force: true });
+
+// ── 护栏规则 ──
+const g = { workspace: "/w/workspace" };
+const blocked = (t: string, i: any) => !!checkToolCall(t, i, g);
+assert.ok(blocked("bash", { command: "wc -l ../data/real/comments.json" }), "应拦截 bash 读原始数据");
+assert.ok(blocked("bash", { command: "curl https://x.com" }), "应拦截联网");
+assert.ok(blocked("bash", { command: "rm -rf research" }), "应拦截删除");
+assert.ok(blocked("read", { path: "../data/real/posts.json" }), "应拦截读工作区外");
+assert.ok(blocked("write", { path: "AGENTS.md" }), "应拦截越界写");
+assert.ok(!blocked("bash", { command: "ls research/topics" }), "不应拦截普通 ls");
+assert.ok(!blocked("read", { path: "research/plan.md" }), "不应拦截读笔记");
+assert.ok(!blocked("read", { path: "/home/u/.pi/agent/skills/opinion-research/SKILL.md" }), "不应拦截读全局 skill");
+assert.ok(!blocked("write", { path: "report/report.md" }), "不应拦截写报告");
+
+// ── 引用提取 ──
+assert.deepEqual(extractCitations("证据：[XHS-1]、[C02] 见[链接](http://x)"), ["XHS-1", "C02"]);
 
 console.log(`smoke ok [${dataset}]：帖子 ${info.posts}，评论 ${info.comments}，平台 ${info.platforms.join("/")}，${info.start} ~ ${info.end}`);
