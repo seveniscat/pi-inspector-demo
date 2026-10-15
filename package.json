@@ -1,0 +1,27 @@
+{
+  "name": "pi-resume-demo",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Pi 技术分享演示：可中断、可恢复的舆情 research bot + 执行过程可视化",
+  "type": "module",
+  "engines": {
+    "node": ">=20.12"
+  },
+  "scripts": {
+    "start": "tsx src/server.ts",
+    "start:new": "tsx src/server.ts --new",
+    "kill": "node scripts/kill.mjs",
+    "reset": "node scripts/reset.mjs",
+    "corpus": "python3 scripts/build-corpus.py",
+    "pi": "cd workspace && pi -e ../src/extensions/resume.ts"
+  },
+  "dependencies": {
+    "@earendil-works/pi-coding-agent": "^1.1.0",
+    "typebox": "^1.0.0"
+  },
+  "devDependencies": {
+    "tsx": "^4.19.0",
+    "typescript": "^5.6.0",
+    "@types/node": "^22.0.0"
+  }
+}

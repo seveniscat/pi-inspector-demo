@@ -1,0 +1,7 @@
+node_modules/
+.env
+.demo.pid
+logs/
+workspace/research/
+workspace/report/
+data/cache/

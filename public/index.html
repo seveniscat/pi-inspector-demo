@@ -1,0 +1,479 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Pi Agent Inspector</title>
+<style>
+:root {
+  --bg: #f6f5f2; --panel: #ffffff; --ink: #1d1d1b; --muted: #6b6a66; --line: #e3e1db;
+  --soft: #f0eee9; --code: #f3f2ee;
+  --c1: #2f6fdb; --c2: #8a4fd6; --c3: #0f8a6b; --c4: #c46a12; --c5: #c23b5a; --c6: #3d8f2a;
+  --warn: #b7791f; --err: #c0392b; --ok: #1f8a4c;
+  --mono: ui-monospace, "SF Mono", "JetBrains Mono", Menlo, Consolas, monospace;
+  --sans: -apple-system, "PingFang SC", "Microsoft YaHei", "Segoe UI", sans-serif;
+}
+@media (prefers-color-scheme: dark) {
+  :root {
+    --bg: #141413; --panel: #1c1c1a; --ink: #ecebe6; --muted: #9a988f; --line: #2e2d2a;
+    --soft: #242421; --code: #22221f;
+    --c1: #6c9cf0; --c2: #b58cf0; --c3: #4cc4a0; --c4: #e8a25a; --c5: #f07a96; --c6: #84c96e;
+  }
+}
+* { box-sizing: border-box; }
+html, body { margin: 0; height: 100%; }
+body { background: var(--bg); color: var(--ink); font: 14px/1.55 var(--sans); display: flex; flex-direction: column; }
+button, select, textarea { font: inherit; color: inherit; }
+code, pre, .mono { font-family: var(--mono); font-size: 12.5px; }
+
+header { display: flex; align-items: center; gap: 16px; padding: 12px 20px; border-bottom: 1px solid var(--line); background: var(--panel); flex-wrap: wrap; }
+header h1 { font-size: 16px; margin: 0; letter-spacing: .2px; }
+.pill { display: inline-flex; align-items: center; gap: 6px; padding: 3px 10px; border-radius: 999px; background: var(--soft); font-size: 12.5px; color: var(--muted); white-space: nowrap; }
+.pill b { color: var(--ink); font-weight: 600; }
+.dot { width: 8px; height: 8px; border-radius: 50%; background: var(--muted); }
+.dot.live { background: var(--ok); box-shadow: 0 0 0 3px color-mix(in srgb, var(--ok) 25%, transparent); }
+.dot.busy { background: var(--c1); animation: pulse 1s infinite; }
+.dot.dead { background: var(--err); }
+@keyframes pulse { 50% { opacity: .35; } }
+.spacer { flex: 1; }
+
+.caps { display: flex; gap: 8px; padding: 10px 20px; border-bottom: 1px solid var(--line); background: var(--panel); flex-wrap: wrap; }
+.cap { display: flex; align-items: center; gap: 8px; padding: 5px 12px; border-radius: 8px; border: 1px solid var(--line); font-size: 13px; color: var(--muted); transition: all .25s; cursor: pointer; user-select: none; }
+.cap .n { font-family: var(--mono); font-size: 11.5px; min-width: 18px; text-align: right; }
+.cap.lit { color: var(--ink); border-color: var(--cc); background: color-mix(in srgb, var(--cc) 10%, transparent); }
+.cap.flash { box-shadow: 0 0 0 3px color-mix(in srgb, var(--cc) 35%, transparent); }
+.cap.off { opacity: .35; }
+
+.controls { display: flex; gap: 10px; padding: 12px 20px; align-items: stretch; flex-wrap: wrap; border-bottom: 1px solid var(--line); }
+.controls textarea { flex: 1 1 380px; min-height: 40px; height: 40px; resize: vertical; padding: 9px 12px; border: 1px solid var(--line); border-radius: 8px; background: var(--panel); }
+.btn { padding: 0 14px; height: 40px; border-radius: 8px; border: 1px solid var(--line); background: var(--panel); cursor: pointer; white-space: nowrap; }
+.btn:hover { border-color: var(--muted); }
+.btn.primary { background: var(--ink); color: var(--bg); border-color: var(--ink); }
+.btn:disabled { opacity: .4; cursor: not-allowed; }
+.group { display: flex; gap: 6px; }
+
+.banner { display: none; margin: 12px 20px 0; padding: 12px 16px; border-radius: 10px; border: 1px solid var(--c3); background: color-mix(in srgb, var(--c3) 9%, var(--panel)); }
+.banner.show { display: flex; gap: 16px; align-items: center; flex-wrap: wrap; }
+.banner .t { font-weight: 600; }
+.banner .d { color: var(--muted); font-size: 13px; }
+
+main { flex: 1; display: grid; grid-template-columns: minmax(0, 1.55fr) minmax(320px, 1fr); gap: 16px; padding: 16px 20px; min-height: 0; }
+@media (max-width: 980px) { main { grid-template-columns: 1fr; } }
+.panel { background: var(--panel); border: 1px solid var(--line); border-radius: 12px; display: flex; flex-direction: column; min-height: 0; }
+.panel > h2 { font-size: 13px; text-transform: uppercase; letter-spacing: .8px; color: var(--muted); margin: 0; padding: 12px 16px; border-bottom: 1px solid var(--line); display: flex; align-items: center; gap: 8px; }
+.scroll { overflow: auto; flex: 1; min-height: 0; }
+.side { display: flex; flex-direction: column; gap: 16px; min-height: 0; }
+
+/* timeline */
+#timeline { padding: 8px 16px 40px; }
+.ev { position: relative; padding: 8px 12px 8px 14px; margin: 8px 0; border-left: 3px solid var(--cc, var(--line)); background: var(--soft); border-radius: 0 8px 8px 0; animation: in .25s ease-out; }
+@keyframes in { from { opacity: 0; transform: translateY(4px); } }
+.ev .h { display: flex; gap: 8px; align-items: baseline; flex-wrap: wrap; }
+.ev .tag { font-size: 11px; padding: 1px 7px; border-radius: 4px; background: color-mix(in srgb, var(--cc) 16%, transparent); color: var(--cc); font-weight: 600; }
+.ev .title { font-weight: 600; }
+.ev .meta { color: var(--muted); font-size: 12px; font-family: var(--mono); margin-left: auto; }
+.ev .body { margin-top: 4px; white-space: pre-wrap; word-break: break-word; }
+.ev pre { margin: 6px 0 0; padding: 8px 10px; background: var(--code); border-radius: 6px; overflow: auto; max-height: 260px; white-space: pre-wrap; word-break: break-word; }
+.ev details summary { cursor: pointer; color: var(--muted); font-size: 12.5px; margin-top: 4px; }
+.ev.err { --cc: var(--err); }
+.ev.warn { --cc: var(--warn); }
+.ev.thinking .body { color: var(--muted); font-style: italic; }
+.ev.running .title::after { content: " …"; animation: pulse 1s infinite; }
+.badge { font-family: var(--mono); font-size: 11.5px; padding: 1px 6px; border-radius: 4px; background: var(--code); color: var(--muted); }
+.badge.bad { color: var(--err); }
+.badge.good { color: var(--ok); }
+.badge.cache { color: var(--c3); background: color-mix(in srgb, var(--c3) 14%, transparent); }
+.turn { display: flex; align-items: center; gap: 10px; margin: 18px 0 6px; color: var(--muted); font-size: 12px; font-family: var(--mono); }
+.turn::after { content: ""; flex: 1; height: 1px; background: var(--line); }
+.divider { margin: 22px 0 10px; padding: 10px 14px; border-radius: 8px; text-align: center; font-weight: 600; border: 1px dashed var(--muted); color: var(--muted); }
+.divider.restart { border-color: var(--c3); color: var(--c3); background: color-mix(in srgb, var(--c3) 7%, transparent); }
+.divider.killed { border-color: var(--err); color: var(--err); background: color-mix(in srgb, var(--err) 7%, transparent); }
+.empty { color: var(--muted); padding: 40px 0; text-align: center; }
+
+/* progress */
+.prog { padding: 14px 16px; }
+.bar { height: 8px; background: var(--soft); border-radius: 99px; overflow: hidden; margin: 8px 0; }
+.bar > i { display: block; height: 100%; width: 0; background: var(--c2); transition: width .4s; }
+.prog ul { margin: 6px 0 0; padding-left: 18px; color: var(--muted); font-size: 13px; }
+
+/* tree */
+#tree { padding: 8px 10px 20px; font-size: 12.5px; }
+.node { display: grid; grid-template-columns: auto auto 1fr; gap: 8px; align-items: baseline; padding: 3px 6px; border-radius: 5px; }
+.node:hover { background: var(--soft); }
+.node .id { font-family: var(--mono); color: var(--muted); font-size: 11px; }
+.node .k { font-size: 10.5px; font-weight: 700; padding: 0 5px; border-radius: 3px; text-transform: uppercase; letter-spacing: .3px; color: var(--kc); background: color-mix(in srgb, var(--kc) 14%, transparent); }
+.node .l { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.node.off { opacity: .4; }
+.node.sum .l { text-decoration: line-through; text-decoration-color: var(--c5); color: var(--muted); }
+.node.leaf { outline: 1.5px solid var(--c3); }
+.node.resume, .node.compaction { background: color-mix(in srgb, var(--kc) 8%, transparent); }
+.legend { color: var(--muted); font-size: 11.5px; padding: 0 16px 10px; }
+</style>
+</head>
+<body>
+
+<header>
+  <h1>Pi Agent Inspector</h1>
+  <span class="pill"><span class="dot" id="connDot"></span><span id="connText">连接中</span></span>
+  <span class="pill">pid <b id="pid">–</b></span>
+  <span class="pill">模型 <b id="model">–</b></span>
+  <span class="pill">tokens <b id="tokens">0</b></span>
+  <span class="pill">cost <b id="cost">$0.0000</b></span>
+  <span class="spacer"></span>
+  <span class="pill mono" id="sessionFile" title="">session: –</span>
+</header>
+
+<div class="caps" id="caps"></div>
+
+<div class="controls">
+  <textarea id="prompt">请使用 opinion-research skill，研究「栖木咖啡 桂花燕麦拿铁」上市一周（2026-10-08 至 2026-10-14）的舆情，输出研究报告。</textarea>
+  <button class="btn primary" id="sendBtn" title="空闲时开始新一轮；运行中则作为 follow-up 排到本轮结束后">发送</button>
+  <button class="btn" id="steerBtn" title="运行中插话纠偏：尽快在当前循环里生效">插话（steer）</button>
+  <div class="group">
+    <select class="btn" id="modelSel"></select>
+    <button class="btn" id="modelBtn">切换模型</button>
+  </div>
+  <button class="btn" id="compactBtn">压缩上下文</button>
+  <button class="btn" id="abortBtn">中止</button>
+</div>
+
+<div class="banner" id="banner">
+  <div>
+    <div class="t" id="bannerTitle">检测到未完成的任务</div>
+    <div class="d" id="bannerDesc"></div>
+  </div>
+  <span class="spacer"></span>
+  <button class="btn primary" id="resumeBtn">从断点继续</button>
+</div>
+
+<main>
+  <section class="panel">
+    <h2>执行时间线 <span class="spacer"></span><label style="text-transform:none;letter-spacing:0;font-size:12px"><input type="checkbox" id="follow" checked /> 自动滚动</label></h2>
+    <div class="scroll" id="tlScroll"><div id="timeline"><div class="empty">等待事件…</div></div></div>
+  </section>
+  <div class="side">
+    <section class="panel" style="flex:0 0 auto">
+      <h2>任务进度 <span class="badge" style="margin-left:auto">checkpoint</span></h2>
+      <div class="prog">
+        <div id="progText" style="color:var(--muted)">尚无进度</div>
+        <div class="bar"><i id="progBar"></i></div>
+        <ul id="progList"></ul>
+      </div>
+    </section>
+    <section class="panel" style="flex:1">
+      <h2>会话树 · session JSONL <span class="spacer"></span><button class="btn" style="height:26px;padding:0 10px;font-size:12px" id="treeBtn">刷新</button></h2>
+      <div class="legend">绿框 = 当前 leaf · 删除线 = 已被压缩总结 · 淡色 = 不在当前分支</div>
+      <div class="scroll" id="tree"></div>
+    </section>
+  </div>
+</main>
+
+<script>
+const CAPS = [
+  { id: 1, name: "Agent Loop", color: "--c1" },
+  { id: 2, name: "Extension", color: "--c2" },
+  { id: 3, name: "Session 树", color: "--c3" },
+  { id: 4, name: "多模型", color: "--c4" },
+  { id: 5, name: "Compaction", color: "--c5" },
+  { id: 6, name: "Skills", color: "--c6" },
+];
+const capCount = {}, hidden = new Set();
+const $ = (id) => document.getElementById(id);
+const esc = (s) => String(s ?? "").replace(/[&<>"]/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
+const fmtTime = (ts) => new Date(ts).toLocaleTimeString("zh-CN", { hour12: false });
+const short = (v, n = 120) => { const s = typeof v === "string" ? v : JSON.stringify(v); return s && s.length > n ? s.slice(0, n) + "…" : s; };
+
+// ── 能力徽章 ──
+$("caps").innerHTML = CAPS.map((c) =>
+  `<div class="cap" id="cap${c.id}" style="--cc:var(${c.color})" title="点击过滤">` +
+  `<span>${"①②③④⑤⑥"[c.id - 1]} ${c.name}</span><span class="n" id="capn${c.id}">0</span></div>`).join("");
+CAPS.forEach((c) => $("cap" + c.id).onclick = () => {
+  hidden.has(c.id) ? hidden.delete(c.id) : hidden.add(c.id);
+  $("cap" + c.id).classList.toggle("off", hidden.has(c.id));
+  document.querySelectorAll(`.ev[data-cap="${c.id}"]`).forEach((el) => el.style.display = hidden.has(c.id) ? "none" : "");
+});
+function hitCap(id, live) {
+  capCount[id] = (capCount[id] || 0) + 1;
+  const el = $("cap" + id);
+  $("capn" + id).textContent = capCount[id];
+  el.classList.add("lit");
+  if (live) { el.classList.add("flash"); setTimeout(() => el.classList.remove("flash"), 500); }
+}
+
+// ── 时间线渲染 ──
+const tl = $("timeline");
+let replaying = false, curTurnText = null, curThinking = null, totalTokens = 0, totalCost = 0;
+const toolRows = new Map(), toolStart = new Map();
+let lastPid = null, systemPromptShownFor = null;
+
+function scrollDown() { if ($("follow").checked) $("tlScroll").scrollTop = $("tlScroll").scrollHeight; }
+function clearEmpty() { const e = tl.querySelector(".empty"); if (e) e.remove(); }
+function add(html, cls = "") { clearEmpty(); const d = document.createElement("div"); d.className = cls; d.innerHTML = html; tl.appendChild(d); scrollDown(); return d; }
+function card({ cap, title, body = "", meta = "", extra = "", cls = "", ts }) {
+  const c = CAPS.find((x) => x.id === cap);
+  const el = add(
+    `<div class="h">${c ? `<span class="tag">${"①②③④⑤⑥"[cap - 1]} ${c.name}</span>` : ""}<span class="title">${title}</span>` +
+    `<span class="meta">${meta}${ts ? " · " + fmtTime(ts) : ""}</span></div>` +
+    (body ? `<div class="body">${body}</div>` : "") + extra,
+    `ev ${cls}`);
+  if (c) { el.style.setProperty("--cc", `var(${c.color})`); el.dataset.cap = cap; if (hidden.has(cap)) el.style.display = "none"; hitCap(cap, !replaying); }
+  return el;
+}
+const SOCIAL_TOOLS = new Set(["social_search", "get_post", "social_trend"]);
+let promptTouched = false;
+const markErr = (el) => { el.classList.add("err"); el.style.setProperty("--cc", "var(--err)"); };
+const pre = (v) => `<pre>${esc(typeof v === "string" ? v : JSON.stringify(v, null, 2))}</pre>`;
+const det = (label, v) => `<details><summary>${label}</summary>${pre(v)}</details>`;
+
+function render(e) {
+  if (e.pid && e.pid !== lastPid && e.type === "process_start") {
+    if (lastPid !== null) add(`进程 ${lastPid} 已终止 —— 新进程 ${e.pid} 启动（${e.mode === "new" ? "新会话" : "继续最近会话"}）`, "divider restart");
+    else add(`进程 ${e.pid} 启动（${e.mode === "new" ? "新会话" : "继续最近会话"}）`, "divider");
+    lastPid = e.pid;
+    curTurnText = curThinking = null;
+    // 标记上一轮进程中没结束的工具调用
+    toolRows.forEach((row) => { if (row.classList.contains("running")) { row.classList.remove("running"); markErr(row); row.querySelector(".meta").textContent = "进程被终止，未完成"; } });
+    toolRows.clear();
+  }
+
+  switch (e.type) {
+    case "process_start": {
+      if (e.skills?.length) card({ cap: 6, title: `已发现 ${e.skills.length} 个 skill`, body: e.skills.map((s) => `<b>${esc(s.name)}</b> — ${esc(s.description)}`).join("\n"), extra: det("只有 name + description 进入 system prompt，正文按需 read", e.skills), ts: e.ts });
+      if (e.socialMode) card({ cap: 2, title: `舆情数据源：${esc({ mock: "离线演示语料（虚构品牌）", live: "真实查询服务", replay: "回放录制的查询" }[e.socialMode] || e.socialMode)}`, body: "social extension 注册了 social_search / get_post / social_trend 三个工具，所有查询带缓存", ts: e.ts });
+      if (e.compaction && Object.keys(e.compaction).length) card({ cap: 5, title: "压缩参数已调低（演示用）", body: esc(JSON.stringify(e.compaction)), ts: e.ts });
+      break;
+    }
+    case "session_ready":
+      $("model").textContent = e.model || "–";
+      $("sessionFile").textContent = "session: " + (e.sessionFile ? e.sessionFile.split(/[\\/]/).pop() : "–");
+      $("sessionFile").title = e.sessionFile || "";
+      if (e.extensionErrors?.length) card({ cls: "err", title: "Extension 加载错误", extra: pre(e.extensionErrors), ts: e.ts });
+      break;
+    case "resume_session_start": {
+      if (e.resumed) {
+        const orph = e.orphans || [];
+        card({ cap: 3, title: "从 JSONL 恢复会话", meta: `${e.entries} 个节点`, ts: e.ts,
+          body: `进度：${e.progress ? `${e.progress.done?.length}/${e.progress.total}` : "无 checkpoint"}` +
+            (orph.length ? `\n<span style="color:var(--err)">发现 ${orph.length} 个被打断的工具调用：${orph.map((o) => esc(o.toolName)).join(", ")}</span>` : "\n没有悬空的工具调用"),
+          extra: orph.length ? det("悬空 toolCall 详情", orph) : "" });
+      } else {
+        card({ cap: 3, title: "新会话", body: "空的 session 文件，从头开始", ts: e.ts });
+      }
+      if (!replaying) refreshState();
+      break;
+    }
+    case "resume_system_prompt":
+      if (systemPromptShownFor === e.pid) break;
+      systemPromptShownFor = e.pid;
+      card({ cap: 1, title: "System Prompt", meta: `${e.chars} 字符`, body: "Pi 的核心提示词很短；工具说明、AGENTS.md、skill 清单都在这里", extra: det("展开完整内容", e.text), ts: e.ts });
+      break;
+    case "user_prompt": {
+      const label = { steer: "插话 · steer（尽快插入当前循环）", followUp: "补充 · follow-up（排到本轮结束后）" }[e.mode] || "用户消息";
+      card({ cap: e.mode === "steer" || e.mode === "followUp" ? 1 : undefined, title: label, body: esc(e.text), ts: e.ts });
+      break;
+    }
+    case "queue_update": {
+      const q = { ...e }; ["seq", "ts", "pid", "type"].forEach((k) => delete q[k]);
+      card({ cap: 1, title: "消息队列变化", body: esc(short(q, 200)), extra: det("原始事件", q), ts: e.ts });
+      break;
+    }
+    case "agent_start": break;
+    case "turn_start":
+      add(`TURN ${e.turnIndex ?? ""}`, "turn");
+      curTurnText = curThinking = null;
+      break;
+    case "thinking_delta":
+      if (!curThinking) curThinking = card({ cap: 1, title: "模型思考", cls: "thinking" });
+      curThinking.querySelector(".body") || curThinking.insertAdjacentHTML("beforeend", `<div class="body"></div>`);
+      curThinking.querySelector(".body").textContent += e.delta || "";
+      scrollDown();
+      break;
+    case "text_delta":
+      if (!curTurnText) curTurnText = card({ cap: 1, title: "模型输出", cls: "running", body: " " });
+      curTurnText.querySelector(".body").textContent += e.delta || "";
+      scrollDown();
+      break;
+    case "message_end": {
+      if (e.role !== "assistant") break;
+      const u = e.usage || {};
+      const tok = u.totalTokens ?? ((u.input || 0) + (u.output || 0));
+      totalTokens += tok || 0; totalCost += u.cost?.total || 0;
+      $("tokens").textContent = totalTokens.toLocaleString();
+      $("cost").textContent = "$" + totalCost.toFixed(4);
+      const meta = `${e.provider || ""}/${e.model || ""} · in ${u.input ?? "?"} / out ${u.output ?? "?"}${u.cacheRead ? ` / cache ${u.cacheRead}` : ""}`;
+      const stop = e.stopReason && e.stopReason !== "stop" && e.stopReason !== "toolUse" ? ` <span class="badge bad">${esc(e.stopReason)}</span>` : "";
+      if (curTurnText) {
+        curTurnText.classList.remove("running");
+        curTurnText.querySelector(".meta").textContent = meta;
+        if (e.text) curTurnText.querySelector(".body").textContent = e.text;
+      } else if (e.text || e.errorMessage) {
+        card({ cap: 1, title: "模型输出" + stop, body: esc(e.text || ""), meta, ts: e.ts });
+      }
+      if (curThinking && e.thinking) curThinking.querySelector(".body").textContent = e.thinking;
+      if (e.thinking && !curThinking && replaying) card({ cap: 1, title: "模型思考", cls: "thinking", body: esc(e.thinking), ts: e.ts });
+      if (e.toolCalls?.length) card({ cap: 1, title: `决定调用工具：${e.toolCalls.map(esc).join(", ")}`, meta, ts: e.ts });
+      if (e.errorMessage) card({ cls: "err", title: "模型调用出错", body: esc(e.errorMessage), ts: e.ts });
+      curTurnText = curThinking = null;
+      break;
+    }
+    case "tool_execution_start": {
+      const isSkill = JSON.stringify(e.args || "").includes("SKILL.md");
+      const custom = e.toolName === "checkpoint" || SOCIAL_TOOLS.has(e.toolName);
+      const cap = isSkill ? 6 : custom ? 2 : 1;
+      const title = isSkill ? `按需加载 skill 正文（${esc(e.toolName)}）` : custom ? `自定义工具 ${esc(e.toolName)}` : `工具 ${esc(e.toolName)}`;
+      const row = card({ cap, title, cls: "running", body: esc(short(e.args, 160)), extra: det("参数", e.args), meta: "执行中", ts: e.ts });
+      toolRows.set(e.toolCallId, row); toolStart.set(e.toolCallId, e.ts);
+      break;
+    }
+    case "tool_execution_end": {
+      let row = toolRows.get(e.toolCallId);
+      if (!row) row = card({ cap: 1, title: `工具 ${esc(e.toolName)}`, ts: e.ts });
+      row.classList.remove("running");
+      if (e.isError) markErr(row);
+      const dur = toolStart.has(e.toolCallId) ? ((e.ts - toolStart.get(e.toolCallId)) / 1000).toFixed(1) + "s" : "";
+      row.querySelector(".meta").innerHTML = `<span class="badge ${e.isError ? "bad" : "good"}">${e.isError ? "失败" : "完成"}</span>` +
+        (e.cached ? ` <span class="badge cache" title="同样的查询之前已执行过，直接读缓存，没有再访问数据服务">缓存命中</span>` : "") + ` ${dur}`;
+      row.insertAdjacentHTML("beforeend", det("结果", e.result));
+      break;
+    }
+    case "resume_progress":
+      setProgress(e);
+      card({ cap: 2, title: `checkpoint ${e.done?.length}/${e.total}`, body: "进度写入 session JSONL（custom entry，不进 LLM 上下文）" + (e.note ? `\n${esc(e.note)}` : ""), ts: e.ts });
+      break;
+    case "resume_context_patched":
+      card({ cap: 2, title: "上下文修补：补上被打断的 toolResult", body: `context 钩子在发送前改写了消息列表，补了 ${e.patched} 条 [interrupted] 结果（${(e.orphans || []).map(esc).join(", ")}）`, ts: e.ts });
+      break;
+    case "resume_model_select":
+      $("model").textContent = e.model || "–";
+      card({ cap: 4, title: `模型切换：${esc(e.previous || "?")} → ${esc(e.model)}`, body: `来源：${esc(e.source)}。会话历史原样保留，下一轮由新模型继续`, ts: e.ts });
+      break;
+    case "model_switch_request":
+      if (!e.ok) card({ cls: "err", title: `切换到 ${esc(e.spec)} 失败`, body: "多半是没有这个 provider 的 API key", ts: e.ts });
+      break;
+    case "compaction_start":
+      card({ cap: 5, title: "开始压缩上下文", body: esc(e.reason ? `触发原因：${e.reason}` : ""), ts: e.ts });
+      break;
+    case "compaction_end":
+      if (e.aborted || e.errorMessage) card({ cap: 5, cls: "warn", title: "压缩未完成", body: esc(e.errorMessage || "aborted"), ts: e.ts });
+      break;
+    case "resume_compacted":
+      card({ cap: 5, title: `压缩完成：${e.tokensBefore ?? "?"} tokens → 一份结构化摘要`, meta: e.reason || "", ts: e.ts,
+        body: `firstKeptEntryId = ${esc(e.firstKeptEntryId)}（之前的消息在会话树上划掉了，但 JSONL 里一条没删）`,
+        extra: det("摘要内容", e.summary) + (e.details ? det("文件操作追踪", e.details) : "") });
+      break;
+    case "manual_compact_request":
+      card({ cap: 5, title: "手动触发压缩", ts: e.ts });
+      break;
+    case "auto_retry_start":
+      card({ cls: "warn", title: "请求失败，自动重试", body: esc(e.errorMessage || ""), ts: e.ts });
+      break;
+    case "agent_end":
+      add("本轮结束", "turn");
+      break;
+    case "warning":
+      card({ cls: "warn", title: "提示", body: esc(e.message), ts: e.ts });
+      break;
+    case "error":
+      card({ cls: "err", title: `错误 @ ${esc(e.where)}`, body: esc(e.message), ts: e.ts });
+      break;
+  }
+  if (!replaying && /^(turn_end|agent_end|resume_|compaction_end|tool_execution_end|session_ready)/.test(e.type)) scheduleTree();
+}
+
+// ── 进度面板 ──
+function setProgress(p) {
+  if (!p || !p.total) return;
+  const done = p.done || [];
+  $("progText").innerHTML = `<b style="color:var(--ink)">${esc(p.task || "任务")}</b> · ${done.length}/${p.total}`;
+  $("progBar").style.width = Math.min(100, (done.length / p.total) * 100) + "%";
+  $("progList").innerHTML = done.map((d) => `<li>${esc(d)}</li>`).join("");
+}
+
+// ── 会话树 ──
+let treeTimer = null;
+function scheduleTree() { clearTimeout(treeTimer); treeTimer = setTimeout(loadTree, 400); }
+const KIND_COLOR = { user: "--ink", assistant: "--c1", tool: "--c1", "tool-error": "--err", model: "--c4", compaction: "--c5", resume: "--c3", progress: "--c2", custom: "--c2" };
+async function loadTree() {
+  try {
+    const r = await fetch("/api/tree"); const t = await r.json();
+    const nodes = t.nodes || [];
+    if (!nodes.length) { $("tree").innerHTML = `<div class="empty">会话文件还是空的</div>`; return; }
+    const kids = new Map();
+    nodes.forEach((n) => { const k = n.parentId || "_root"; if (!kids.has(k)) kids.set(k, []); kids.get(k).push(n); });
+    const out = [];
+    (function walk(pid, depth) {
+      const list = kids.get(pid) || [];
+      list.forEach((n) => {
+        const d = list.length > 1 ? depth + 1 : depth;
+        const color = KIND_COLOR[n.kind] || "--muted";
+        out.push(`<div class="node ${n.onBranch ? "" : "off"} ${n.summarized ? "sum" : ""} ${n.isLeaf ? "leaf" : ""} ${n.kind}" style="--kc:var(${color});margin-left:${d * 14}px" title="${esc(n.type)} ${esc(n.timestamp || "")}">` +
+          `<span class="id">${esc(n.id.slice(0, 6))}</span><span class="k">${esc(n.kind)}</span><span class="l">${esc(n.label)}</span></div>`);
+        walk(n.id, d);
+      });
+    })("_root", 0);
+    const box = $("tree"); const atBottom = box.scrollTop + box.clientHeight >= box.scrollHeight - 30;
+    box.innerHTML = out.join("");
+    if (atBottom) box.scrollTop = box.scrollHeight;
+  } catch {}
+}
+$("treeBtn").onclick = loadTree;
+
+// ── 状态 & 恢复横幅 ──
+async function refreshState() {
+  try {
+    const s = await (await fetch("/api/state")).json();
+    $("pid").textContent = s.pid; $("model").textContent = s.model || "–";
+    if (s.sessionFile) { $("sessionFile").textContent = "session: " + s.sessionFile.split(/[\\/]/).pop(); $("sessionFile").title = s.sessionFile; }
+    if (s.defaultTask && !promptTouched) $("prompt").value = s.defaultTask;
+    const sel = $("modelSel"); sel.innerHTML = Object.entries(s.models || {}).filter(([, v]) => v).map(([k, v]) => `<option value="${esc(v)}">${k}: ${esc(v)}</option>`).join("");
+    const other = Object.values(s.models || {}).find((v) => v && v !== s.model); if (other) sel.value = other;
+    if (s.progress) setProgress(s.progress);
+    const st = s.sessionStart, p = s.progress;
+    const unfinished = st?.resumed && (!p || (p.done?.length ?? 0) < (p.total ?? 1) || !String(p.note || "").includes("报告已生成"));
+    if (unfinished && !s.busy) {
+      $("bannerDesc").textContent = `进度 ${p ? `${p.done?.length}/${p.total}` : "未知"}` + ((st.orphans || []).length ? ` · ${st.orphans.length} 个工具调用被打断（${st.orphans.map((o) => o.toolName).join(", ")}）` : "");
+      $("banner").classList.add("show");
+    } else $("banner").classList.remove("show");
+    setBusy(s.busy);
+  } catch {}
+}
+function setBusy(b) { $("connDot").className = "dot " + (b ? "busy" : "live"); $("connText").textContent = b ? "运行中" : "空闲"; $("compactBtn").disabled = b; }
+
+// ── SSE ──
+function connect() {
+  const es = new EventSource("/events");
+  es.addEventListener("reset", () => {
+    replaying = true;
+    tl.innerHTML = `<div class="empty">等待事件…</div>`;
+    Object.keys(capCount).forEach((k) => delete capCount[k]);
+    CAPS.forEach((c) => { $("capn" + c.id).textContent = 0; $("cap" + c.id).classList.remove("lit"); });
+    totalTokens = 0; totalCost = 0; lastPid = null; systemPromptShownFor = null; toolRows.clear(); curTurnText = curThinking = null;
+  });
+  es.addEventListener("replayed", () => { replaying = false; refreshState(); loadTree(); });
+  es.onmessage = (m) => {
+    const e = JSON.parse(m.data);
+    render(e);
+    if (!replaying && (e.type === "agent_start" || e.type === "agent_end")) setBusy(e.type === "agent_start");
+    if (!replaying && e.type === "agent_end") refreshState();
+  };
+  es.onerror = () => {
+    $("connDot").className = "dot dead"; $("connText").textContent = "进程已断开";
+    if (!tl.lastElementChild?.classList.contains("killed")) add("与 agent 进程的连接断开（进程被 kill？）重启后会自动重连", "divider killed");
+    $("banner").classList.remove("show");
+  };
+}
+connect();
+
+// ── 控制 ──
+const post = (url, body) => fetch(url, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(body || {}) }).then((r) => r.json());
+$("sendBtn").onclick = () => { const t = $("prompt").value.trim(); if (t) post("/api/prompt", { text: t }); };
+$("prompt").oninput = () => { promptTouched = true; };
+$("prompt").onkeydown = (e) => { if (e.key === "Enter" && (e.metaKey || e.ctrlKey)) $("sendBtn").click(); };
+$("steerBtn").onclick = () => { const t = $("prompt").value.trim(); if (t) post("/api/steer", { text: t }); };
+$("resumeBtn").onclick = () => { $("banner").classList.remove("show"); post("/api/resume"); };
+$("modelBtn").onclick = () => post("/api/model", { spec: $("modelSel").value });
+$("compactBtn").onclick = () => post("/api/compact").then((r) => r.error && alert(r.error));
+$("abortBtn").onclick = () => post("/api/abort");
+</script>
+</body>
+</html>
