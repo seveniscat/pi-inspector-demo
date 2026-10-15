@@ -20,7 +20,7 @@
     "replay": "tsx scripts/replay.ts"
   },
   "dependencies": {
-    "@earendil-works/pi-coding-agent": "^1.1.0",
+    "@earendil-works/pi-coding-agent": "1.1.0",
     "typebox": "^1.0.0"
   },
   "devDependencies": {

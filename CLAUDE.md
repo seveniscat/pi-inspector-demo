@@ -30,7 +30,7 @@ Pi 技术分享的演示项目：用 Pi SDK 嵌入 agent，做一个可中断、
 
 ## 约束
 
-- Pi 包是 `@earendil-works/pi-coding-agent`，基线 1.1.0。API 以官方仓库 earendil-works/pi 的 docs 为准，不确定的地方用 `as any` 并在 README 自检清单里加一条
+- Pi 包是 `@earendil-works/pi-coding-agent`，基线 1.1.0（package.json 锁死，1.2.0 的差异见 README 自检清单）。API 以官方仓库 earendil-works/pi 的 docs 为准，不确定的地方用 `as any` 并在 README 自检清单里加一条
 - 演示语料是虚构品牌，页面和报告里要能看出是演示数据
 - 不要提交 `.env`、`data/real/`、`*.xlsx`、`data/cache/`、`logs/`、`runs/`、`workspace/research/`、`workspace/report/`
 - 工具输出不带评论作者（脱敏）；报告不写评论用户昵称

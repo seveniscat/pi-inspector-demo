@@ -150,9 +150,12 @@ kill 时机：`DEMO_STEP_DELAY_MS`（每次工具调用前停顿）+ `SOCIAL_LAT
 
 ### 3.6 官方实验版 Durable 怎么跑
 
-在 Pi 仓库（github.com/earendil-works/pi）根目录，先用 pi 登录过：
+实验版 durable agent 只在 **v1.1.0** 里有：1.2.0（2026-10-12）移除了 `src/experimental` 下的实验代码。所以要在 Pi 仓库的 v1.1.0 checkout 里运行，先用 pi 登录过：
 
 ```bash
+git clone https://github.com/earendil-works/pi && cd pi
+git checkout v1.1.0          # 浅克隆先 git fetch --depth 1 origin tag v1.1.0
+npm install && npm run build
 node --import ./packages/coding-agent/src/experimental/source-resolver.ts \
   packages/coding-agent/src/experimental/durable/main.ts
 # 让它执行一个会跑 bash 的任务，执行中 kill -9，然后加 --continue 再启动
@@ -176,7 +179,7 @@ node --import ./packages/coding-agent/src/experimental/source-resolver.ts \
 
 本项目对照 Pi 官方文档编写，没有在真实环境运行过。下面几点要在本机确认：
 
-- [ ] `npm install` 能装上 `@earendil-works/pi-coding-agent@^1.1.0`
+- [ ] `npm install` 装上的是 `@earendil-works/pi-coding-agent@1.1.0`（package.json 锁死了版本）。要升 1.2.0：`before_agent_start` 也会在 `sendMessage` 触发新一轮时触发，需要看 `event.messageType`；`pi.sendUserMessage` 必须传 `deliverAs`。resume.ts 的 `before_agent_start` 只在第一次触发时抓 system prompt，不受影响，也没用 `sendUserMessage`；但升级后要把整张清单重跑一遍
 - [ ] `npm run import -- 真实数据.xlsx` 的概况输出里，情绪识别失败、时间格式未识别、找不到所属帖子都是 0；然后 `SMOKE_DATASET=real npm test` 通过
 - [ ] 启动后出现 Skills 卡片 `opinion-research` 和"舆情数据源"卡片。没有 skill 卡片，说明项目信任没生效，可以把 skill 目录复制到 `~/.pi/agent/skills/`
 - [ ] 模型能调用 5 个 social 工具（自定义工具卡片为紫色"② Extension"）
@@ -193,7 +196,7 @@ node --import ./packages/coding-agent/src/experimental/source-resolver.ts \
 - [ ] 切换模型后，下一轮 `message_end` 的 provider 变了
 - [ ] 手动压缩成功，会话树出现 `COMPACTION` 节点，压缩卡片下出现前后对比条
 - [ ] 报告里每条结论都有帖子 / 评论 ID，抽查 2～3 个能在数据里找到；报告里没有评论用户的昵称
-- [ ] 官方实验版 Durable 能 kill 后 `--continue` 恢复
+- [ ] 官方实验版 Durable（v1.1.0 checkout）能 kill 后 `--continue` 恢复
 - [ ] 全程录屏一份备用
 
 ## 常见问题
