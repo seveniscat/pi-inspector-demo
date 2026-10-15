@@ -1,21 +1,35 @@
 /**
- * 真实舆情查询服务的适配器。
+ * 远程舆情查询服务的适配器（当前演示用本地数据，这个文件留作以后接接口）。
  *
- * ⚠️ 待填：拿到服务的接口文档后，只需要改本文件里标了 TODO 的三处：
- *   1. 各接口的路径
- *   2. toXxxParams()：把我们的查询参数翻译成服务的参数
- *   3. fromXxx()：把服务的返回翻译成 types.ts 里的形状
+ * ⚠️ 待填：拿到接口文档后，只改本文件标了 TODO 的地方：
+ *   1. 各接口路径与鉴权
+ *   2. 查询参数映射
+ *   3. 返回字段映射（目标形状见 types.ts，字段与本地 Excel 导出一致）
  * 工具层、缓存、UI 都不用动。
  *
- * 配置（.env）：SOCIAL_API_BASE、SOCIAL_API_TOKEN、SOCIAL_API_TIMEOUT_MS
+ * 配置（.env）：SOCIAL_API_BASE、SOCIAL_API_TOKEN
  */
-import type { Post, SearchQuery, SearchResult, SocialProvider, TrendPoint, TrendQuery } from "./types.ts";
+import { normSentiment } from "./normalize.ts";
+import type {
+  Comment,
+  CommentQuery,
+  DatasetInfo,
+  Page,
+  Post,
+  PostDetail,
+  PostQuery,
+  SocialProvider,
+  TrendQuery,
+  TrendRow,
+} from "./types.ts";
 
 // TODO(1)：接口路径
 const PATHS = {
-  search: "/posts/search",
+  info: "/dataset/info",
+  posts: "/posts/search",
   post: (id: string) => `/posts/${encodeURIComponent(id)}`,
-  trend: "/posts/trend",
+  comments: "/comments/search",
+  trend: "/stats/trend",
 };
 
 export class LiveProvider implements SocialProvider {
@@ -38,7 +52,7 @@ export class LiveProvider implements SocialProvider {
       url.searchParams.set(k, Array.isArray(v) ? v.join(",") : String(v));
     }
     const res = await fetch(url, {
-      // TODO(1)：鉴权方式按服务实际修改（Bearer / 自定义 header / 签名）
+      // TODO(1)：鉴权方式按服务实际修改
       headers: this.token ? { Authorization: `Bearer ${this.token}` } : {},
       signal: AbortSignal.timeout(this.timeout),
     });
@@ -46,75 +60,63 @@ export class LiveProvider implements SocialProvider {
     return res.json();
   }
 
-  async search(q: SearchQuery): Promise<SearchResult> {
-    const raw = await this.call(PATHS.search, toSearchParams(q));
-    return fromSearch(raw);
+  async info(): Promise<DatasetInfo> {
+    return this.call(PATHS.info);
   }
 
-  async getPost(id: string): Promise<Post | null> {
-    const raw = await this.call(PATHS.post(id));
-    return raw ? fromPost(raw) : null;
+  // TODO(2)(3)：参数与字段映射
+  async searchPosts(q: PostQuery): Promise<Page<Post>> {
+    const raw = await this.call(PATHS.posts, { ...q, platforms: q.platforms });
+    return { total: raw.total ?? 0, items: (raw.items ?? []).map(fromPost) };
   }
 
-  async trend(q: TrendQuery): Promise<TrendPoint[]> {
-    const raw = await this.call(PATHS.trend, toTrendParams(q));
-    return fromTrend(raw);
+  async getPost(id: string, topComments = 10): Promise<PostDetail | null> {
+    const raw = await this.call(PATHS.post(id), { top_comments: topComments });
+    return raw ? { post: fromPost(raw.post ?? raw), top_comments: (raw.comments ?? []).map(fromComment) } : null;
   }
-}
 
-// ── TODO(2)：查询参数映射 ──
-function toSearchParams(q: SearchQuery): Record<string, unknown> {
-  return {
-    keyword: q.keyword,
-    topic: q.topic,
-    platform: q.platforms,
-    start_date: q.start,
-    end_date: q.end,
-    sort: q.sort,
-    page_size: q.limit ?? 10,
-    offset: q.offset ?? 0,
-  };
-}
+  async searchComments(q: CommentQuery): Promise<Page<Comment>> {
+    const raw = await this.call(PATHS.comments, { ...q });
+    return { total: raw.total ?? 0, items: (raw.items ?? []).map(fromComment) };
+  }
 
-function toTrendParams(q: TrendQuery): Record<string, unknown> {
-  return { keyword: q.keyword, topic: q.topic, platform: q.platforms, start_date: q.start, end_date: q.end, granularity: "day" };
-}
-
-// ── TODO(3)：返回字段映射 ──
-function fromSearch(raw: any): SearchResult {
-  const items = raw?.data?.items ?? raw?.items ?? [];
-  return { total: raw?.data?.total ?? raw?.total ?? items.length, items: items.map(fromPost) };
+  async trend(q: TrendQuery): Promise<TrendRow[]> {
+    return this.call(PATHS.trend, { ...q });
+  }
 }
 
 function fromPost(r: any): Post {
   return {
     id: String(r.id),
     platform: r.platform,
-    created_at: r.created_at ?? r.publish_time,
-    author: {
-      name: r.author?.name ?? r.author_name ?? "",
-      followers: Number(r.author?.followers ?? r.fans ?? 0),
-      verified: Boolean(r.author?.verified),
-      type: r.author?.type ?? "normal",
+    title: r.title ?? "",
+    author: r.author ?? "",
+    url: r.url,
+    comment_count: Number(r.comment_count ?? 0),
+    sentiment: normSentiment(r.sentiment),
+    comment_sentiment: {
+      positive: Number(r.positive_comments ?? 0),
+      neutral: Number(r.neutral_comments ?? 0),
+      negative: Number(r.negative_comments ?? 0),
     },
-    text: r.text ?? r.content ?? "",
-    topics: r.topics ?? r.tags ?? [],
-    likes: Number(r.likes ?? r.like_count ?? 0),
-    comments_count: Number(r.comments_count ?? r.comment_count ?? 0),
-    shares: Number(r.shares ?? r.share_count ?? 0),
-    sentiment: r.sentiment,
-    comments: (r.comments ?? []).map((c: any) => ({ author: c.author ?? "", text: c.text ?? c.content ?? "", likes: Number(c.likes ?? 0) })),
+    relevance: r.relevance,
+    source_query: r.source_query,
+    published_at: r.published_at,
   };
 }
 
-function fromTrend(raw: any): TrendPoint[] {
-  const rows = raw?.data ?? raw ?? [];
-  return rows.map((r: any) => ({
-    date: r.date,
-    count: Number(r.count ?? 0),
-    positive: Number(r.positive ?? 0),
-    neutral: Number(r.neutral ?? 0),
-    negative: Number(r.negative ?? 0),
-    engagement: Number(r.engagement ?? 0),
-  }));
+function fromComment(r: any): Comment {
+  return {
+    id: String(r.id),
+    post_id: String(r.post_id),
+    post_title: r.post_title,
+    platform: r.platform,
+    author: r.author ?? "",
+    content: r.content ?? "",
+    likes: Number(r.likes ?? 0),
+    sentiment: normSentiment(r.sentiment),
+    is_reply: Boolean(r.is_reply),
+    reply_count: Number(r.reply_count ?? 0),
+    published_at: r.published_at,
+  };
 }

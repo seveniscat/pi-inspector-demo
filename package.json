@@ -2,7 +2,7 @@
   "name": "pi-inspector-demo",
   "version": "1.0.0",
   "private": true,
-  "description": "Pi 技术分享演示：可中断、可恢复的舆情 research bot + 执行过程可视化",
+  "description": "Pi 技术分享演示：可中断、可恢复的舆情分析助手 + 执行过程可视化",
   "type": "module",
   "engines": {
     "node": ">=20.12"
@@ -14,7 +14,8 @@
     "reset": "node scripts/reset.mjs",
     "corpus": "python3 scripts/build-corpus.py",
     "pi": "cd workspace && pi -e ../src/extensions/resume.ts",
-    "test": "node --experimental-strip-types --no-warnings scripts/smoke.ts"
+    "test": "node --experimental-strip-types --no-warnings scripts/smoke.ts",
+    "import": "python3 scripts/import-excel.py"
   },
   "dependencies": {
     "@earendil-works/pi-coding-agent": "^1.1.0",

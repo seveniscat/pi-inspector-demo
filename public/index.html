@@ -126,7 +126,7 @@ main { flex: 1; display: grid; grid-template-columns: minmax(0, 1.55fr) minmax(3
 <div class="caps" id="caps"></div>
 
 <div class="controls">
-  <textarea id="prompt">请使用 opinion-research skill，研究「栖木咖啡 桂花燕麦拿铁」上市一周（2026-10-08 至 2026-10-14）的舆情，输出研究报告。</textarea>
+  <textarea id="prompt">关于英雄令的舆情</textarea>
   <button class="btn primary" id="sendBtn" title="空闲时开始新一轮；运行中则作为 follow-up 排到本轮结束后">发送</button>
   <button class="btn" id="steerBtn" title="运行中插话纠偏：尽快在当前循环里生效">插话（steer）</button>
   <div class="group">
@@ -219,7 +219,7 @@ function card({ cap, title, body = "", meta = "", extra = "", cls = "", ts }) {
   if (c) { el.style.setProperty("--cc", `var(${c.color})`); el.dataset.cap = cap; if (hidden.has(cap)) el.style.display = "none"; hitCap(cap, !replaying); }
   return el;
 }
-const SOCIAL_TOOLS = new Set(["social_search", "get_post", "social_trend"]);
+const SOCIAL_TOOLS = new Set(["dataset_info", "social_search", "get_post", "search_comments", "social_trend"]);
 let promptTouched = false;
 const markErr = (el) => { el.classList.add("err"); el.style.setProperty("--cc", "var(--err)"); };
 const pre = (v) => `<pre>${esc(typeof v === "string" ? v : JSON.stringify(v, null, 2))}</pre>`;
@@ -239,7 +239,10 @@ function render(e) {
   switch (e.type) {
     case "process_start": {
       if (e.skills?.length) card({ cap: 6, title: `已发现 ${e.skills.length} 个 skill`, body: e.skills.map((s) => `<b>${esc(s.name)}</b> — ${esc(s.description)}`).join("\n"), extra: det("只有 name + description 进入 system prompt，正文按需 read", e.skills), ts: e.ts });
-      if (e.socialMode) card({ cap: 2, title: `舆情数据源：${esc({ mock: "离线演示语料（虚构品牌）", live: "真实查询服务", replay: "回放录制的查询" }[e.socialMode] || e.socialMode)}`, body: "social extension 注册了 social_search / get_post / social_trend 三个工具，所有查询带缓存", ts: e.ts });
+      if (e.socialMode) {
+        const src = e.socialMode === "local" ? (e.socialDataset === "demo" ? "本地演示数据（虚构品牌）" : `本地数据集 ${e.socialDataset}`) : { live: "远程查询接口", replay: "回放录制的查询" }[e.socialMode] || e.socialMode;
+        card({ cap: 2, title: `舆情数据源：${esc(src)}`, body: "social extension 注册了 dataset_info / social_search / get_post / search_comments / social_trend 五个工具，所有查询带缓存", ts: e.ts });
+      }
       if (e.compaction && Object.keys(e.compaction).length) card({ cap: 5, title: "压缩参数已调低（演示用）", body: esc(JSON.stringify(e.compaction)), ts: e.ts });
       break;
     }

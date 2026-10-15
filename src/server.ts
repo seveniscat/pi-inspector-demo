@@ -36,10 +36,15 @@ const MODEL_B = process.env.MODEL_B || "";
 const STEP_DELAY = Number(process.env.DEMO_STEP_DELAY_MS || 0);
 const COMPACT_AT = Number(process.env.DEMO_COMPACT_AT_TOKENS || 0);
 const KEEP_RECENT = Number(process.env.DEMO_KEEP_RECENT_TOKENS || 0);
-const SOCIAL_MODE = (process.env.SOCIAL_MODE || "mock") as "mock" | "live" | "replay";
+// 数据源：local（本地数据集，默认）/ live（远程接口）/ replay（回放 live 录制）。旧值 mock 等同 local + demo
+const RAW_MODE = process.env.SOCIAL_MODE || "local";
+const SOCIAL_MODE = (RAW_MODE === "mock" ? "local" : RAW_MODE) as "local" | "live" | "replay";
+const SOCIAL_DATASET = RAW_MODE === "mock" ? "demo" : process.env.SOCIAL_DATASET || "demo";
 const DEFAULT_TASK =
   process.env.DEMO_TASK ||
-  "请使用 opinion-research skill，研究「栖木咖啡 桂花燕麦拿铁」上市一周（2026-10-08 至 2026-10-14）的舆情，输出研究报告。";
+  (SOCIAL_MODE === "local" && SOCIAL_DATASET === "demo"
+    ? "关于栖木咖啡桂花燕麦拿铁的舆情"
+    : "关于英雄令的舆情");
 
 fs.writeFileSync(path.join(ROOT, ".demo.pid"), String(process.pid));
 const bus = new EventLog(path.join(ROOT, "logs", "events.jsonl"));
@@ -79,9 +84,10 @@ const resourceLoader = new DefaultResourceLoader({
       factory: createSocialExtension(bus.emit, {
         mode: SOCIAL_MODE,
         dataDir: path.join(ROOT, "data"),
+        dataset: SOCIAL_DATASET,
         apiBase: process.env.SOCIAL_API_BASE,
         apiToken: process.env.SOCIAL_API_TOKEN,
-        mockLatencyMs: Number(process.env.SOCIAL_MOCK_LATENCY_MS || 0),
+        latencyMs: Number(process.env.SOCIAL_LATENCY_MS || process.env.SOCIAL_MOCK_LATENCY_MS || 0),
       }),
     },
     { name: "resume", factory: createResumeExtension(bus.emit, { stepDelayMs: STEP_DELAY, trustedCwd: WORKSPACE }) },
@@ -115,6 +121,7 @@ bus.emit({
   mode: FRESH ? "new" : "continue",
   models: { A: MODEL_A, B: MODEL_B },
   socialMode: SOCIAL_MODE,
+  socialDataset: SOCIAL_DATASET,
   skills: skills.map((s) => ({ name: s.name, description: s.description, filePath: s.filePath })),
   compaction: compactionOverrides,
   stepDelayMs: STEP_DELAY,
@@ -169,8 +176,8 @@ function send(text: string) {
 
 // ── 6. HTTP：静态页 + SSE + 控制接口 ──
 const RESUME_PROMPT =
-  "进程刚才被意外终止，现在已经恢复。请先查看 research/plan.md 以及 research/、report/ 目录，确认哪些研究问题已经完成，" +
-  "然后从中断处继续舆情研究，不要重复已完成的问题。";
+  "进程刚才被意外终止，现在已经恢复。请先查看 research/plan.md 以及 research/、report/ 目录，确认研究范围和哪些问题已经完成，" +
+  "然后从中断处继续舆情研究，不要重新界定范围，也不要重复已完成的问题。";
 
 async function readBody(req: http.IncomingMessage): Promise<any> {
   let raw = "";
@@ -204,6 +211,7 @@ const server = http.createServer(async (req, res) => {
         sessionStart: lastSessionStart,
         skills: skills.map((s) => s.name),
         socialMode: SOCIAL_MODE,
+        socialDataset: SOCIAL_DATASET,
         defaultTask: DEFAULT_TASK,
       });
     }
@@ -252,7 +260,7 @@ const server = http.createServer(async (req, res) => {
       if (busy) return json(res, 409, { error: "agent 正在运行，等它停下再压缩" });
       bus.emit({ type: "manual_compact_request" });
       session
-        .compact("保留研究对象和时间范围、4 个研究问题及各自完成状态、已发现的关键证据帖子 ID 和风险事件时间线。")
+        .compact("保留研究范围（对象、别名、排除词、时间、平台）、4 个研究问题及完成状态、关键证据的帖子 / 评论 ID、风险事件时间线。")
         .then((r: any) => bus.emit({ type: "manual_compact_done", tokensBefore: r?.tokensBefore }))
         .catch((err: any) => bus.emit({ type: "error", where: "compact", message: String(err?.message ?? err) }));
       return json(res, 200, { ok: true });

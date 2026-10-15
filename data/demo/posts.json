@@ -1,0 +1,933 @@
+[
+ {
+  "id": "WB-30117",
+  "platform": "微博",
+  "platform_id": "30117",
+  "title": "秋天的第一杯桂花，明天见。#栖木桂花燕麦拿铁# 10月8日全国门店同步上市。",
+  "author": "栖木咖啡官方（官方）",
+  "url": "https://example.com/WB-30117",
+  "comment_count": 410,
+  "sentiment": "neutral",
+  "comment_sentiment": {
+   "positive": 1,
+   "neutral": 1,
+   "negative": 0
+  },
+  "relevance": "相关",
+  "source_query": "栖木 桂花燕麦拿铁",
+  "published_at": "2026-10-07T18:00:00+08:00",
+  "crawled_at": "2026-10-15T09:00:00+08:00"
+ },
+ {
+  "id": "WB-30152",
+  "platform": "微博",
+  "platform_id": "30152",
+  "title": "桂花燕麦拿铁今日上市！选用当季桂花糖浆，搭配燕麦奶。上市首周 19.9 元，全国门店同步供应。",
+  "author": "栖木咖啡官方（官方）",
+  "url": "https://example.com/WB-30152",
+  "comment_count": 820,
+  "sentiment": "positive",
+  "comment_sentiment": {
+   "positive": 4,
+   "neutral": 1,
+   "negative": 0
+  },
+  "relevance": "相关",
+  "source_query": "栖木 桂花燕麦拿铁",
+  "published_at": "2026-10-08T08:00:00+08:00",
+  "crawled_at": "2026-10-15T09:00:00+08:00"
+ },
+ {
+  "id": "XHS-81240",
+  "platform": "小红书",
+  "platform_id": "81240",
+  "title": "栖木新品抢先喝！桂花燕麦拿铁的桂花香气超真实，不是那种香精味，燕麦奶也很顺。秋天氛围感拉满～ #合作 #栖木桂花燕麦拿铁",
+  "author": "慢慢喝咖啡（KOL）",
+  "url": "https://example.com/XHS-81240",
+  "comment_count": 640,
+  "sentiment": "positive",
+  "comment_sentiment": {
+   "positive": 1,
+   "neutral": 0,
+   "negative": 1
+  },
+  "relevance": "不相关",
+  "source_query": "栖木 桂花燕麦拿铁",
+  "published_at": "2026-10-08T10:12:00+08:00",
+  "crawled_at": "2026-10-15T09:00:00+08:00"
+ },
+ {
+  "id": "WB-30188",
+  "platform": "微博",
+  "platform_id": "30188",
+  "title": "转发本条抽 10 位送栖木桂花燕麦拿铁兑换券！关注+转发即可参与 #栖木桂花燕麦拿铁# #抽奖#",
+  "author": "生活好物君（营销号）",
+  "url": "https://example.com/WB-30188",
+  "comment_count": 9800,
+  "sentiment": "positive",
+  "comment_sentiment": {
+   "positive": 10,
+   "neutral": 2,
+   "negative": 2
+  },
+  "relevance": "不相关",
+  "source_query": "栖木 桂花燕麦拿铁",
+  "published_at": "2026-10-08T11:30:00+08:00",
+  "crawled_at": "2026-10-15T09:00:00+08:00"
+ },
+ {
+  "id": "DY-55031",
+  "platform": "抖音",
+  "platform_id": "55031",
+  "title": "打工人午休测评栖木新品桂花燕麦拿铁：桂花味挺足，燕麦奶加分，19.9 这个价值了。",
+  "author": "阿杰的午休",
+  "url": "https://example.com/DY-55031",
+  "comment_count": 1300,
+  "sentiment": "positive",
+  "comment_sentiment": {
+   "positive": 1,
+   "neutral": 1,
+   "negative": 0
+  },
+  "relevance": "相关",
+  "source_query": "栖木 桂花燕麦拿铁",
+  "published_at": "2026-10-08T12:40:00+08:00",
+  "crawled_at": "2026-10-15T09:00:00+08:00"
+ },
+ {
+  "id": "XHS-81266",
+  "platform": "小红书",
+  "platform_id": "81266",
+  "title": "第一口桂花香很真，不是香精味；燕麦奶顺滑不腻。就是有点甜，下次想要少糖，但店员说新品暂时不能调糖。",
+  "author": "小周今天也要早起",
+  "url": "https://example.com/XHS-81266",
+  "comment_count": 210,
+  "sentiment": "positive",
+  "comment_sentiment": {
+   "positive": 2,
+   "neutral": 2,
+   "negative": 0
+  },
+  "relevance": "相关",
+  "source_query": "栖木 桂花燕麦拿铁",
+  "published_at": "2026-10-08T13:05:00+08:00",
+  "crawled_at": "2026-10-15T09:00:00+08:00"
+ },
+ {
+  "id": "XHS-81302",
+  "platform": "小红书",
+  "platform_id": "81302",
+  "title": "栖木这次的桂花杯套也太好看了吧！三款图案已集齐，奶黄色配金桂，拍照很出片。",
+  "author": "白桃乌龙不加冰",
+  "url": "https://example.com/XHS-81302",
+  "comment_count": 290,
+  "sentiment": "positive",
+  "comment_sentiment": {
+   "positive": 1,
+   "neutral": 1,
+   "negative": 0
+  },
+  "relevance": "相关",
+  "source_query": "栖木 桂花燕麦拿铁",
+  "published_at": "2026-10-08T17:20:00+08:00",
+  "crawled_at": "2026-10-15T09:00:00+08:00"
+ },
+ {
+  "id": "XHS-81355",
+  "platform": "小红书",
+  "platform_id": "81355",
+  "title": "栖木桂花燕麦拿铁太甜了……喝了半杯就放下了，感觉桂花糖浆放太多，桂花香被甜味盖住了。",
+  "author": "Momo在杭州",
+  "url": "https://example.com/XHS-81355",
+  "comment_count": 156,
+  "sentiment": "negative",
+  "comment_sentiment": {
+   "positive": 0,
+   "neutral": 0,
+   "negative": 4
+  },
+  "relevance": "相关",
+  "source_query": "栖木 桂花燕麦拿铁",
+  "published_at": "2026-10-09T09:48:00+08:00",
+  "crawled_at": "2026-10-15T09:00:00+08:00"
+ },
+ {
+  "id": "WB-30240",
+  "platform": "微博",
+  "platform_id": "30240",
+  "title": "栖木桂花燕麦拿铁 vs 平时喝的燕麦拿铁：香是真的香，但甜度劝退，每天喝顶不住。",
+  "author": "咖啡因依赖患者",
+  "url": "https://example.com/WB-30240",
+  "comment_count": 66,
+  "sentiment": "negative",
+  "comment_sentiment": {
+   "positive": 1,
+   "neutral": 1,
+   "negative": 0
+  },
+  "relevance": "相关",
+  "source_query": "栖木 桂花燕麦拿铁",
+  "published_at": "2026-10-09T10:30:00+08:00",
+  "crawled_at": "2026-10-15T09:00:00+08:00"
+ },
+ {
+  "id": "XHS-81390",
+  "platform": "小红书",
+  "platform_id": "81390",
+  "title": "上海 5 家栖木门店打卡桂花燕麦拿铁，附路线图！每家出品都很稳定～ #广告",
+  "author": "打工人咖啡地图（KOL）",
+  "url": "https://example.com/XHS-81390",
+  "comment_count": 380,
+  "sentiment": "positive",
+  "comment_sentiment": {
+   "positive": 1,
+   "neutral": 1,
+   "negative": 0
+  },
+  "relevance": "不相关",
+  "source_query": "栖木 桂花燕麦拿铁",
+  "published_at": "2026-10-09T12:15:00+08:00",
+  "crawled_at": "2026-10-15T09:00:00+08:00"
+ },
+ {
+  "id": "DY-55074",
+  "platform": "抖音",
+  "platform_id": "55074",
+  "title": "全网爆火的栖木桂花拿铁！不喝你就 out 了！秋天必喝 TOP1！",
+  "author": "吃喝玩乐榜（营销号）",
+  "url": "https://example.com/DY-55074",
+  "comment_count": 140,
+  "sentiment": "positive",
+  "comment_sentiment": {
+   "positive": 1,
+   "neutral": 1,
+   "negative": 0
+  },
+  "relevance": "不相关",
+  "source_query": "栖木 桂花燕麦拿铁",
+  "published_at": "2026-10-09T13:00:00+08:00",
+  "crawled_at": "2026-10-15T09:00:00+08:00"
+ },
+ {
+  "id": "WB-30266",
+  "platform": "微博",
+  "platform_id": "30266",
+  "title": "栖木桂花燕麦拿铁首周 19.9 可以接受，恢复 25 的话我会犹豫。",
+  "author": "南方有嘉木",
+  "url": "https://example.com/WB-30266",
+  "comment_count": 58,
+  "sentiment": "neutral",
+  "comment_sentiment": {
+   "positive": 0,
+   "neutral": 2,
+   "negative": 0
+  },
+  "relevance": "相关",
+  "source_query": "栖木 桂花燕麦拿铁",
+  "published_at": "2026-10-09T15:42:00+08:00",
+  "crawled_at": "2026-10-15T09:00:00+08:00"
+ },
+ {
+  "id": "XHS-81412",
+  "platform": "小红书",
+  "platform_id": "81412",
+  "title": "栖木的燕麦奶口感真的进步了，比之前的豆奶系列顺很多，桂花燕麦拿铁会回购。",
+  "author": "一只小蘑菇",
+  "url": "https://example.com/XHS-81412",
+  "comment_count": 81,
+  "sentiment": "positive",
+  "comment_sentiment": {
+   "positive": 1,
+   "neutral": 1,
+   "negative": 0
+  },
+  "relevance": "相关",
+  "source_query": "栖木 桂花燕麦拿铁",
+  "published_at": "2026-10-09T19:30:00+08:00",
+  "crawled_at": "2026-10-15T09:00:00+08:00"
+ },
+ {
+  "id": "XHS-81420",
+  "platform": "小红书",
+  "platform_id": "81420",
+  "title": "有人知道栖木桂花燕麦拿铁热量多少吗？大杯感觉糖不少。",
+  "author": "减脂中的阿May",
+  "url": "https://example.com/XHS-81420",
+  "comment_count": 47,
+  "sentiment": "neutral",
+  "comment_sentiment": {
+   "positive": 0,
+   "neutral": 2,
+   "negative": 0
+  },
+  "relevance": "相关",
+  "source_query": "栖木 桂花燕麦拿铁",
+  "published_at": "2026-10-09T21:05:00+08:00",
+  "crawled_at": "2026-10-15T09:00:00+08:00"
+ },
+ {
+  "id": "WB-30301",
+  "platform": "微博",
+  "platform_id": "30301",
+  "title": "鹿岛桂花拿铁今日上市，限时 16.9 元！秋天的桂花，鹿岛也有。",
+  "author": "鹿岛咖啡官方（官方）",
+  "url": "https://example.com/WB-30301",
+  "comment_count": 1100,
+  "sentiment": "neutral",
+  "comment_sentiment": {
+   "positive": 0,
+   "neutral": 1,
+   "negative": 1
+  },
+  "relevance": "相关",
+  "source_query": "鹿岛 桂花拿铁",
+  "published_at": "2026-10-10T08:00:00+08:00",
+  "crawled_at": "2026-10-15T09:00:00+08:00"
+ },
+ {
+  "id": "XHS-81463",
+  "platform": "小红书",
+  "platform_id": "81463",
+  "title": "栖木 vs 鹿岛 桂花拿铁横评：香气栖木胜（桂花更真实）；甜度鹿岛更克制；价格鹿岛便宜 3 块；奶底栖木的燕麦奶更顺。总结：重口味选栖木，怕甜选鹿岛。",
+  "author": "拿铁测评员小林（KOL）",
+  "url": "https://example.com/XHS-81463",
+  "comment_count": 940,
+  "sentiment": "neutral",
+  "comment_sentiment": {
+   "positive": 1,
+   "neutral": 3,
+   "negative": 1
+  },
+  "relevance": "相关",
+  "source_query": "栖木 桂花燕麦拿铁",
+  "published_at": "2026-10-10T14:20:00+08:00",
+  "crawled_at": "2026-10-15T09:00:00+08:00"
+ },
+ {
+  "id": "WB-30333",
+  "platform": "微博",
+  "platform_id": "30333",
+  "title": "鹿岛的桂花拿铁比栖木好喝，还便宜，栖木太甜了。",
+  "author": "月半弯",
+  "url": "https://example.com/WB-30333",
+  "comment_count": 97,
+  "sentiment": "negative",
+  "comment_sentiment": {
+   "positive": 0,
+   "neutral": 1,
+   "negative": 1
+  },
+  "relevance": "相关",
+  "source_query": "栖木 桂花燕麦拿铁",
+  "published_at": "2026-10-10T16:10:00+08:00",
+  "crawled_at": "2026-10-15T09:00:00+08:00"
+ },
+ {
+  "id": "XHS-81488",
+  "platform": "小红书",
+  "platform_id": "81488",
+  "title": "栖木桂花燕麦拿铁 yyds，已经连喝三天了，桂花香太治愈。",
+  "author": "奶茶戒断第3天",
+  "url": "https://example.com/XHS-81488",
+  "comment_count": 160,
+  "sentiment": "positive",
+  "comment_sentiment": {
+   "positive": 2,
+   "neutral": 0,
+   "negative": 0
+  },
+  "relevance": "相关",
+  "source_query": "栖木 桂花燕麦拿铁",
+  "published_at": "2026-10-10T18:30:00+08:00",
+  "crawled_at": "2026-10-15T09:00:00+08:00"
+ },
+ {
+  "id": "DY-55120",
+  "platform": "抖音",
+  "platform_id": "55120",
+  "title": "咖啡师角度对比两家桂花拿铁：栖木用的是桂花糖浆+燕麦奶，香气层次更好，但糖度偏高；鹿岛糖浆更淡，咖啡味更突出。",
+  "author": "咖啡师阿May（KOL）",
+  "url": "https://example.com/DY-55120",
+  "comment_count": 2100,
+  "sentiment": "neutral",
+  "comment_sentiment": {
+   "positive": 0,
+   "neutral": 4,
+   "negative": 1
+  },
+  "relevance": "相关",
+  "source_query": "栖木 桂花燕麦拿铁",
+  "published_at": "2026-10-10T20:00:00+08:00",
+  "crawled_at": "2026-10-15T09:00:00+08:00"
+ },
+ {
+  "id": "XHS-81501",
+  "platform": "小红书",
+  "platform_id": "81501",
+  "title": "栖木这次桂花系列的杯套和包装设计，是今年连锁咖啡里最好看的一套，配色很高级。",
+  "author": "设计师Lucy",
+  "url": "https://example.com/XHS-81501",
+  "comment_count": 210,
+  "sentiment": "positive",
+  "comment_sentiment": {
+   "positive": 1,
+   "neutral": 1,
+   "negative": 0
+  },
+  "relevance": "相关",
+  "source_query": "栖木 桂花燕麦拿铁",
+  "published_at": "2026-10-10T21:00:00+08:00",
+  "crawled_at": "2026-10-15T09:00:00+08:00"
+ },
+ {
+  "id": "XHS-81544",
+  "platform": "小红书",
+  "platform_id": "81544",
+  "title": "在栖木杭州西湖文化广场店买的桂花燕麦拿铁，喝到一半吸管吸出一小块透明硬塑料片！！店员说可能是封口膜，但那明显不是封口膜的材质。已经联系客服了，等回复。",
+  "author": "西湖边的阿橙",
+  "url": "https://example.com/XHS-81544",
+  "comment_count": 188,
+  "sentiment": "negative",
+  "comment_sentiment": {
+   "positive": 0,
+   "neutral": 0,
+   "negative": 6
+  },
+  "relevance": "相关",
+  "source_query": "栖木 异物",
+  "published_at": "2026-10-11T14:22:00+08:00",
+  "crawled_at": "2026-10-15T09:00:00+08:00"
+ },
+ {
+  "id": "XHS-81550",
+  "platform": "小红书",
+  "platform_id": "81550",
+  "title": "今天又喝了栖木桂花燕麦拿铁，还是太甜了，希望出少糖版。",
+  "author": "椰子水少冰",
+  "url": "https://example.com/XHS-81550",
+  "comment_count": 18,
+  "sentiment": "negative",
+  "comment_sentiment": {
+   "positive": 0,
+   "neutral": 1,
+   "negative": 1
+  },
+  "relevance": "相关",
+  "source_query": "栖木 桂花燕麦拿铁",
+  "published_at": "2026-10-11T16:00:00+08:00",
+  "crawled_at": "2026-10-15T09:00:00+08:00"
+ },
+ {
+  "id": "DY-55162",
+  "platform": "抖音",
+  "platform_id": "55162",
+  "title": "周末 vlog：去鹿岛和栖木都买了桂花拿铁，一个甜一个淡，看个人口味吧。",
+  "author": "李同学vlog",
+  "url": "https://example.com/DY-55162",
+  "comment_count": 64,
+  "sentiment": "neutral",
+  "comment_sentiment": {
+   "positive": 0,
+   "neutral": 2,
+   "negative": 0
+  },
+  "relevance": "相关",
+  "source_query": "栖木 桂花燕麦拿铁",
+  "published_at": "2026-10-11T19:00:00+08:00",
+  "crawled_at": "2026-10-15T09:00:00+08:00"
+ },
+ {
+  "id": "WB-30390",
+  "platform": "微博",
+  "platform_id": "30390",
+  "title": "刚在小红书看到有人在栖木喝出塑料片，我上周也在西湖文化广场店买过桂花燕麦拿铁，有点慌。",
+  "author": "杭漂小陈",
+  "url": "https://example.com/WB-30390",
+  "comment_count": 90,
+  "sentiment": "negative",
+  "comment_sentiment": {
+   "positive": 0,
+   "neutral": 1,
+   "negative": 1
+  },
+  "relevance": "相关",
+  "source_query": "栖木 异物",
+  "published_at": "2026-10-11T20:05:00+08:00",
+  "crawled_at": "2026-10-15T09:00:00+08:00"
+ },
+ {
+  "id": "XHS-81561",
+  "platform": "小红书",
+  "platform_id": "81561",
+  "title": "下班一杯栖木桂花燕麦拿铁，香香甜甜，治愈一天的疲惫。",
+  "author": "苏苏爱喝咖啡",
+  "url": "https://example.com/XHS-81561",
+  "comment_count": 52,
+  "sentiment": "positive",
+  "comment_sentiment": {
+   "positive": 1,
+   "neutral": 1,
+   "negative": 0
+  },
+  "relevance": "相关",
+  "source_query": "栖木 桂花燕麦拿铁",
+  "published_at": "2026-10-11T21:30:00+08:00",
+  "crawled_at": "2026-10-15T09:00:00+08:00"
+ },
+ {
+  "id": "XHS-81602",
+  "platform": "小红书",
+  "platform_id": "81602",
+  "title": "杭州栖木武林店，桂花燕麦拿铁里有一小片蓝白色塑料碎片，照片在图里。和前两天西湖文化广场店那位姐妹说的很像，是不是同一批原料或者设备有问题？",
+  "author": "小鱼不吃鱼",
+  "url": "https://example.com/XHS-81602",
+  "comment_count": 760,
+  "sentiment": "negative",
+  "comment_sentiment": {
+   "positive": 1,
+   "neutral": 0,
+   "negative": 4
+  },
+  "relevance": "相关",
+  "source_query": "栖木 异物",
+  "published_at": "2026-10-12T11:40:00+08:00",
+  "crawled_at": "2026-10-15T09:00:00+08:00"
+ },
+ {
+  "id": "DY-55201",
+  "platform": "抖音",
+  "platform_id": "55201",
+  "title": "实拍｜在栖木咖啡杭州门店买的桂花燕麦拿铁喝出塑料片，门店说是封口膜？大家自己看这是封口膜吗。",
+  "author": "杭州吃货老王",
+  "url": "https://example.com/DY-55201",
+  "comment_count": 12000,
+  "sentiment": "negative",
+  "comment_sentiment": {
+   "positive": 0,
+   "neutral": 5,
+   "negative": 13
+  },
+  "relevance": "相关",
+  "source_query": "栖木 异物",
+  "published_at": "2026-10-12T19:30:00+08:00",
+  "crawled_at": "2026-10-15T09:00:00+08:00"
+ },
+ {
+  "id": "WB-30431",
+  "platform": "微博",
+  "platform_id": "30431",
+  "title": "@栖木咖啡官方 我朋友就是杭州喝出塑料片的那位，客服只说给退款加送两张券，问原因就说门店在核查。这个态度真的让人很失望。",
+  "author": "一颗柠檬精",
+  "url": "https://example.com/WB-30431",
+  "comment_count": 430,
+  "sentiment": "negative",
+  "comment_sentiment": {
+   "positive": 0,
+   "neutral": 1,
+   "negative": 1
+  },
+  "relevance": "相关",
+  "source_query": "栖木 异物",
+  "published_at": "2026-10-12T21:10:00+08:00",
+  "crawled_at": "2026-10-15T09:00:00+08:00"
+ },
+ {
+  "id": "WB-30449",
+  "platform": "微博",
+  "platform_id": "30449",
+  "title": "震惊！栖木咖啡全国门店被曝喝出塑料，还敢喝吗？速看！#栖木咖啡异物#",
+  "author": "热点速递君（营销号）",
+  "url": "https://example.com/WB-30449",
+  "comment_count": 900,
+  "sentiment": "negative",
+  "comment_sentiment": {
+   "positive": 0,
+   "neutral": 1,
+   "negative": 3
+  },
+  "relevance": "不相关",
+  "source_query": "栖木 异物",
+  "published_at": "2026-10-12T22:30:00+08:00",
+  "crawled_at": "2026-10-15T09:00:00+08:00"
+ },
+ {
+  "id": "XHS-81640",
+  "platform": "小红书",
+  "platform_id": "81640",
+  "title": "上海这边喝了一周栖木桂花燕麦拿铁，没遇到任何问题，大家别慌，看清楚是哪里的店。",
+  "author": "上海打工人Amy",
+  "url": "https://example.com/XHS-81640",
+  "comment_count": 140,
+  "sentiment": "positive",
+  "comment_sentiment": {
+   "positive": 1,
+   "neutral": 1,
+   "negative": 1
+  },
+  "relevance": "相关",
+  "source_query": "栖木 桂花燕麦拿铁",
+  "published_at": "2026-10-12T23:00:00+08:00",
+  "crawled_at": "2026-10-15T09:00:00+08:00"
+ },
+ {
+  "id": "WB-30470",
+  "platform": "微博",
+  "platform_id": "30470",
+  "title": "【记者走访】栖木咖啡杭州西湖文化广场店、武林店先后被消费者反映饮品中出现塑料碎片。记者今日走访发现，两家门店已暂停售卖桂花系列饮品，店员表示在等待总部排查结果。#栖木咖啡异物#",
+  "author": "杭州生活报（媒体）",
+  "url": "https://example.com/WB-30470",
+  "comment_count": 3400,
+  "sentiment": "negative",
+  "comment_sentiment": {
+   "positive": 0,
+   "neutral": 2,
+   "negative": 5
+  },
+  "relevance": "相关",
+  "source_query": "栖木 异物",
+  "published_at": "2026-10-13T10:15:00+08:00",
+  "crawled_at": "2026-10-15T09:00:00+08:00"
+ },
+ {
+  "id": "WB-30478",
+  "platform": "微博",
+  "platform_id": "30478",
+  "title": "#栖木咖啡异物# 这事都两天了，官方到现在一句话没有，只有客服话术。",
+  "author": "不吐不快",
+  "url": "https://example.com/WB-30478",
+  "comment_count": 380,
+  "sentiment": "negative",
+  "comment_sentiment": {
+   "positive": 1,
+   "neutral": 1,
+   "negative": 0
+  },
+  "relevance": "相关",
+  "source_query": "栖木 异物",
+  "published_at": "2026-10-13T12:00:00+08:00",
+  "crawled_at": "2026-10-15T09:00:00+08:00"
+ },
+ {
+  "id": "DY-55240",
+  "platform": "抖音",
+  "platform_id": "55240",
+  "title": "去栖木杭州几家门店问了一圈，桂花系列都暂停售卖了，店员说在等总部通知。",
+  "author": "城市探店日记",
+  "url": "https://example.com/DY-55240",
+  "comment_count": 1100,
+  "sentiment": "neutral",
+  "comment_sentiment": {
+   "positive": 2,
+   "neutral": 0,
+   "negative": 0
+  },
+  "relevance": "相关",
+  "source_query": "栖木 异物",
+  "published_at": "2026-10-13T14:00:00+08:00",
+  "crawled_at": "2026-10-15T09:00:00+08:00"
+ },
+ {
+  "id": "WB-30502",
+  "platform": "微博",
+  "platform_id": "30502",
+  "title": "关于杭州部分门店饮品异物的情况说明：经排查，杭州西湖文化广场店、武林店使用的一批桂花糖浆泵头配件存在破损，碎片可能落入饮品。我们已于 10 月 13 日起暂停杭州地区桂花系列售卖，更换全部泵头并逐店检查；其他城市门店使用不同批次配件，排查未发现同类问题。受影响的顾客可联系客服全额退款并获得补偿。此前客服回复未能及时说明情况，我们郑重道歉。",
+  "author": "栖木咖啡官方（官方）",
+  "url": "https://example.com/WB-30502",
+  "comment_count": 8600,
+  "sentiment": "neutral",
+  "comment_sentiment": {
+   "positive": 4,
+   "neutral": 11,
+   "negative": 3
+  },
+  "relevance": "相关",
+  "source_query": "栖木 异物",
+  "published_at": "2026-10-13T18:30:00+08:00",
+  "crawled_at": "2026-10-15T09:00:00+08:00"
+ },
+ {
+  "id": "XHS-81688",
+  "platform": "小红书",
+  "platform_id": "81688",
+  "title": "后续：官方今天发了说明，也有专人联系我道歉和赔偿。原因说是糖浆泵头配件破损，算是给了个说法。但第一时间客服说是封口膜，真的很让人生气。",
+  "author": "西湖边的阿橙",
+  "url": "https://example.com/XHS-81688",
+  "comment_count": 520,
+  "sentiment": "neutral",
+  "comment_sentiment": {
+   "positive": 1,
+   "neutral": 1,
+   "negative": 0
+  },
+  "relevance": "相关",
+  "source_query": "栖木 异物",
+  "published_at": "2026-10-13T20:40:00+08:00",
+  "crawled_at": "2026-10-15T09:00:00+08:00"
+ },
+ {
+  "id": "WB-30519",
+  "platform": "微博",
+  "platform_id": "30519",
+  "title": "栖木回应了！但网友不买账！评论区炸了！#栖木咖啡异物#",
+  "author": "热点速递君（营销号）",
+  "url": "https://example.com/WB-30519",
+  "comment_count": 260,
+  "sentiment": "negative",
+  "comment_sentiment": {
+   "positive": 1,
+   "neutral": 1,
+   "negative": 0
+  },
+  "relevance": "不相关",
+  "source_query": "栖木 异物",
+  "published_at": "2026-10-13T21:00:00+08:00",
+  "crawled_at": "2026-10-15T09:00:00+08:00"
+ },
+ {
+  "id": "XHS-81702",
+  "platform": "小红书",
+  "platform_id": "81702",
+  "title": "复盘栖木异物事件：从 10/11 首帖到官方说明大约 52 小时，前 36 小时只有客服话术，'封口膜'的说法反而激化了情绪。好在说明里原因、范围、措施都讲清楚了。",
+  "author": "消费观察员Tina（KOL）",
+  "url": "https://example.com/XHS-81702",
+  "comment_count": 980,
+  "sentiment": "neutral",
+  "comment_sentiment": {
+   "positive": 1,
+   "neutral": 1,
+   "negative": 0
+  },
+  "relevance": "相关",
+  "source_query": "栖木 异物",
+  "published_at": "2026-10-13T22:00:00+08:00",
+  "crawled_at": "2026-10-15T09:00:00+08:00"
+ },
+ {
+  "id": "WB-30544",
+  "platform": "微博",
+  "platform_id": "30544",
+  "title": "看了栖木的说明，处理得还算可以，我在成都，照常喝桂花燕麦拿铁。",
+  "author": "咖啡因依赖患者",
+  "url": "https://example.com/WB-30544",
+  "comment_count": 70,
+  "sentiment": "positive",
+  "comment_sentiment": {
+   "positive": 2,
+   "neutral": 0,
+   "negative": 0
+  },
+  "relevance": "相关",
+  "source_query": "栖木 桂花燕麦拿铁",
+  "published_at": "2026-10-14T09:20:00+08:00",
+  "crawled_at": "2026-10-15T09:00:00+08:00"
+ },
+ {
+  "id": "XHS-81730",
+  "platform": "小红书",
+  "platform_id": "81730",
+  "title": "回购栖木桂花燕麦拿铁（北京门店），这次店员说可以少糖了！少糖版刚好，桂花香更明显。",
+  "author": "小周今天也要早起",
+  "url": "https://example.com/XHS-81730",
+  "comment_count": 130,
+  "sentiment": "positive",
+  "comment_sentiment": {
+   "positive": 1,
+   "neutral": 1,
+   "negative": 1
+  },
+  "relevance": "相关",
+  "source_query": "栖木 桂花燕麦拿铁",
+  "published_at": "2026-10-14T10:05:00+08:00",
+  "crawled_at": "2026-10-15T09:00:00+08:00"
+ },
+ {
+  "id": "DY-55288",
+  "platform": "抖音",
+  "platform_id": "55288",
+  "title": "后续：栖木联系我了，杭州门店已经换了泵头，桂花系列预计周五恢复售卖，赔偿也到了。",
+  "author": "杭州吃货老王",
+  "url": "https://example.com/DY-55288",
+  "comment_count": 3100,
+  "sentiment": "neutral",
+  "comment_sentiment": {
+   "positive": 2,
+   "neutral": 2,
+   "negative": 3
+  },
+  "relevance": "相关",
+  "source_query": "栖木 异物",
+  "published_at": "2026-10-14T12:00:00+08:00",
+  "crawled_at": "2026-10-15T09:00:00+08:00"
+ },
+ {
+  "id": "WB-30561",
+  "platform": "微博",
+  "platform_id": "30561",
+  "title": "别被营销号带节奏，'全国门店喝出塑料'是假的。官方说明和杭州生活报都只提到杭州两家店。",
+  "author": "理性派小张",
+  "url": "https://example.com/WB-30561",
+  "comment_count": 260,
+  "sentiment": "neutral",
+  "comment_sentiment": {
+   "positive": 0,
+   "neutral": 1,
+   "negative": 1
+  },
+  "relevance": "相关",
+  "source_query": "栖木 异物",
+  "published_at": "2026-10-14T13:30:00+08:00",
+  "crawled_at": "2026-10-15T09:00:00+08:00"
+ },
+ {
+  "id": "XHS-81752",
+  "platform": "小红书",
+  "platform_id": "81752",
+  "title": "风波之后还是会喝栖木桂花燕麦拿铁，但希望品控别再出问题了。",
+  "author": "奶茶戒断第3天",
+  "url": "https://example.com/XHS-81752",
+  "comment_count": 60,
+  "sentiment": "neutral",
+  "comment_sentiment": {
+   "positive": 1,
+   "neutral": 1,
+   "negative": 0
+  },
+  "relevance": "相关",
+  "source_query": "栖木 桂花燕麦拿铁",
+  "published_at": "2026-10-14T15:00:00+08:00",
+  "crawled_at": "2026-10-15T09:00:00+08:00"
+ },
+ {
+  "id": "WB-30580",
+  "platform": "微博",
+  "platform_id": "30580",
+  "title": "这周都喝鹿岛了，便宜还没出事，栖木先观望。",
+  "author": "鹿岛粉丝团",
+  "url": "https://example.com/WB-30580",
+  "comment_count": 44,
+  "sentiment": "negative",
+  "comment_sentiment": {
+   "positive": 0,
+   "neutral": 0,
+   "negative": 2
+  },
+  "relevance": "相关",
+  "source_query": "栖木 桂花燕麦拿铁",
+  "published_at": "2026-10-14T16:00:00+08:00",
+  "crawled_at": "2026-10-15T09:00:00+08:00"
+ },
+ {
+  "id": "XHS-81766",
+  "platform": "小红书",
+  "platform_id": "81766",
+  "title": "一周后复评鹿岛和栖木的桂花拿铁：栖木口碑被异物事件拖累，但产品本身依然是香气最好的；鹿岛靠价格拿下了不少学生党。",
+  "author": "拿铁测评员小林（KOL）",
+  "url": "https://example.com/XHS-81766",
+  "comment_count": 520,
+  "sentiment": "neutral",
+  "comment_sentiment": {
+   "positive": 1,
+   "neutral": 1,
+   "negative": 0
+  },
+  "relevance": "相关",
+  "source_query": "栖木 异物",
+  "published_at": "2026-10-14T17:20:00+08:00",
+  "crawled_at": "2026-10-15T09:00:00+08:00"
+ },
+ {
+  "id": "XHS-81771",
+  "platform": "小红书",
+  "platform_id": "81771",
+  "title": "栖木桂花杯套第四款什么时候出？等收齐。",
+  "author": "收集控小鹿",
+  "url": "https://example.com/XHS-81771",
+  "comment_count": 66,
+  "sentiment": "positive",
+  "comment_sentiment": {
+   "positive": 1,
+   "neutral": 0,
+   "negative": 1
+  },
+  "relevance": "相关",
+  "source_query": "栖木 桂花燕麦拿铁",
+  "published_at": "2026-10-14T18:00:00+08:00",
+  "crawled_at": "2026-10-15T09:00:00+08:00"
+ },
+ {
+  "id": "DY-55301",
+  "platform": "抖音",
+  "platform_id": "55301",
+  "title": "桂花拿铁哪家强？栖木 鹿岛 一次说清楚！点赞关注不迷路！",
+  "author": "吃喝玩乐榜（营销号）",
+  "url": "https://example.com/DY-55301",
+  "comment_count": 80,
+  "sentiment": "neutral",
+  "comment_sentiment": {
+   "positive": 0,
+   "neutral": 2,
+   "negative": 0
+  },
+  "relevance": "不相关",
+  "source_query": "栖木 桂花燕麦拿铁",
+  "published_at": "2026-10-14T19:00:00+08:00",
+  "crawled_at": "2026-10-15T09:00:00+08:00"
+ },
+ {
+  "id": "WB-30602",
+  "platform": "微博",
+  "platform_id": "30602",
+  "title": "栖木首周 19.9 今天结束了，明天恢复 25，不喝了，鹿岛 16.9 不香吗。",
+  "author": "价格敏感型",
+  "url": "https://example.com/WB-30602",
+  "comment_count": 120,
+  "sentiment": "negative",
+  "comment_sentiment": {
+   "positive": 0,
+   "neutral": 1,
+   "negative": 1
+  },
+  "relevance": "相关",
+  "source_query": "栖木 桂花燕麦拿铁",
+  "published_at": "2026-10-14T20:10:00+08:00",
+  "crawled_at": "2026-10-15T09:00:00+08:00"
+ },
+ {
+  "id": "XHS-81790",
+  "platform": "小红书",
+  "platform_id": "81790",
+  "title": "栖木桂花杯套在二手平台已经炒到 30 一个了，离谱。",
+  "author": "设计师Lucy",
+  "url": "https://example.com/XHS-81790",
+  "comment_count": 140,
+  "sentiment": "neutral",
+  "comment_sentiment": {
+   "positive": 1,
+   "neutral": 1,
+   "negative": 0
+  },
+  "relevance": "相关",
+  "source_query": "栖木 桂花燕麦拿铁",
+  "published_at": "2026-10-14T21:00:00+08:00",
+  "crawled_at": "2026-10-15T09:00:00+08:00"
+ },
+ {
+  "id": "WB-30615",
+  "platform": "微博",
+  "platform_id": "30615",
+  "title": "转发抽 20 位送鹿岛桂花拿铁券！#抽奖# #鹿岛咖啡#",
+  "author": "福利搬运工（营销号）",
+  "url": "https://example.com/WB-30615",
+  "comment_count": 6200,
+  "sentiment": "neutral",
+  "comment_sentiment": {
+   "positive": 4,
+   "neutral": 3,
+   "negative": 3
+  },
+  "relevance": "不相关",
+  "source_query": "鹿岛 桂花拿铁",
+  "published_at": "2026-10-14T21:30:00+08:00",
+  "crawled_at": "2026-10-15T09:00:00+08:00"
+ }
+]

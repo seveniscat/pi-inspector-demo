@@ -1,133 +1,196 @@
 /**
- * Social extension —— 把舆情查询服务包成 3 个 Pi 工具。
+ * Social extension —— 把舆情数据服务包成 5 个 Pi 工具。
  *
  * 这一段是"Pi 怎么接我们自己的系统"的答案：内核只有 read / write / edit / bash，
  * 业务能力通过 extension 的 registerTool 加进来，模型看到的就是普通工具。
  *
  * 设计要点：
- * - 工具只返回精简文本（摘要列表 / 单帖详情 / 按天统计），原始大 JSON 不进上下文
+ * - 每个工具对应数据服务的一个接口（本地数据集 / 远程接口 / 回放，三选一）
+ * - 只返回精简文本，原始 JSON 不进上下文；评论作者不输出（脱敏），帖子作者保留（用来识别官方 / KOL）
  * - 每次调用都过缓存（social/cache.ts）：恢复后重复查询直接命中，不重复打外部服务
- * - 工具结果的 details 里带 cached / mode / ms，Inspector 据此显示"缓存命中"
+ * - details 里带 cached / mode / ms，Inspector 据此显示"缓存命中"
  */
 import path from "node:path";
 import type { ExtensionAPI } from "@earendil-works/pi-coding-agent";
 import { Type } from "typebox";
-import { CachedProvider } from "../social/cache.ts";
+import { CachedProvider, type Op } from "../social/cache.ts";
 import { LiveProvider } from "../social/live.ts";
-import { MockProvider } from "../social/mock.ts";
-import type { Post, SearchQuery, SearchResult, TrendPoint, TrendQuery } from "../social/types.ts";
+import { LocalProvider } from "../social/local.ts";
+import {
+  SENTIMENT_CN,
+  type Comment,
+  type CommentQuery,
+  type DatasetInfo,
+  type Page,
+  type Post,
+  type PostDetail,
+  type PostQuery,
+  type TrendQuery,
+  type TrendRow,
+} from "../social/types.ts";
 
 export type Emit = (event: Record<string, unknown>) => void;
 
 export interface SocialOptions {
-  mode: "mock" | "live" | "replay";
-  dataDir: string; // 放 corpus.json 和 cache/
+  mode: "local" | "live" | "replay";
+  dataDir: string; // data/
+  dataset?: string; // local 模式下的数据集目录名：demo / real
   apiBase?: string;
   apiToken?: string;
-  mockLatencyMs?: number;
+  latencyMs?: number;
 }
-
-const PLATFORM_CN: Record<string, string> = { xiaohongshu: "小红书", weibo: "微博", douyin: "抖音" };
-const SENT_CN: Record<string, string> = { positive: "正面", neutral: "中性", negative: "负面" };
-const AUTHOR_CN: Record<string, string> = { normal: "普通用户", kol: "KOL", official: "官方", marketing: "营销号", media: "媒体" };
 
 export function createProvider(opts: SocialOptions): CachedProvider {
-  const cacheDir = path.join(opts.dataDir, "cache", opts.mode === "mock" ? "mock" : "live");
-  if (opts.mode === "replay") return new CachedProvider(cacheDir, null, "replay");
-  const inner =
-    opts.mode === "live"
-      ? new LiveProvider(opts.apiBase ?? "", opts.apiToken ?? "")
-      : new MockProvider(path.join(opts.dataDir, "corpus.json"), opts.mockLatencyMs ?? 0);
-  return new CachedProvider(cacheDir, inner, opts.mode);
+  const dataset = opts.dataset || "demo";
+  if (opts.mode === "replay") return new CachedProvider(path.join(opts.dataDir, "cache", "live"), null, "replay");
+  if (opts.mode === "live") {
+    return new CachedProvider(path.join(opts.dataDir, "cache", "live"), new LiveProvider(opts.apiBase ?? "", opts.apiToken ?? ""), "live");
+  }
+  return new CachedProvider(
+    path.join(opts.dataDir, "cache", `local-${dataset}`),
+    new LocalProvider(path.join(opts.dataDir, dataset), opts.latencyMs ?? 0),
+    `local:${dataset}`,
+  );
 }
 
-function fmtNum(n: number): string {
-  return n >= 10000 ? (n / 10000).toFixed(1) + "w" : String(n);
-}
-
-function oneLine(s: string, n: number): string {
-  const t = s.replace(/\s+/g, " ").trim();
+// ── 输出格式 ──
+const oneLine = (s: string, n: number) => {
+  const t = (s || "").replace(/\s+/g, " ").trim();
   return t.length > n ? t.slice(0, n) + "…" : t;
+};
+// 源数据只有日期时不显示时分
+const when = (iso: string) => (iso || "").slice(5, iso?.includes("T") ? 16 : 10).replace("T", " ");
+const kv = (m: Record<string, number>) => Object.entries(m).map(([k, v]) => `${k}(${v})`).join("、") || "无";
+const shortUrl = (u?: string) => (u ? u.split("?")[0] : "");
+const sent = (s?: string) => (s ? SENTIMENT_CN[s as keyof typeof SENTIMENT_CN] : "未标注");
+const pct = (a: number, total: number) => (total ? Math.round((a / total) * 100) + "%" : "-");
+
+export function formatInfo(i: DatasetInfo): string {
+  return [
+    `数据集：${i.name}`,
+    `帖子 ${i.posts} 条，评论 ${i.comments} 条`,
+    `平台：${i.platforms.join("、")}`,
+    `帖子发布时间：${i.start} ~ ${i.end}；评论发布时间：${i.comment_start} ~ ${i.comment_end}`,
+    `抓取时使用的搜索词（帖子数）：${kv(i.source_queries)}`,
+    `相关性取值（帖子数）：${kv(i.relevance)}`,
+  ].join("\n");
 }
 
-function authorTag(p: Post): string {
-  const a = p.author;
-  return `${AUTHOR_CN[a.type] ?? a.type}${a.verified ? "·认证" : ""}·粉丝${fmtNum(a.followers)}`;
+function postLine(p: Post): string {
+  const cs = p.comment_sentiment;
+  const total = cs.positive + cs.neutral + cs.negative;
+  return (
+    `- [${p.id}] ${p.platform} ${when(p.published_at)} 作者:${oneLine(p.author, 16)} 评论${p.comment_count}` +
+    ` 帖子情绪:${sent(p.sentiment)} 评论情绪 积${cs.positive}/中${cs.neutral}/消${cs.negative}（消极${pct(cs.negative, total)}）` +
+    `${p.relevance !== undefined && p.relevance !== null ? ` 相关性:${p.relevance}` : ""}` +
+    `${p.source_query ? ` 来自搜索:${p.source_query}` : ""}\n  ${oneLine(p.title, 80)}`
+  );
 }
 
-export function formatSearch(q: SearchQuery, r: SearchResult): string {
-  const lines = [`共 ${r.total} 条，返回 ${r.items.length} 条（offset ${q.offset ?? 0}，按${q.sort === "latest" ? "时间" : "热度"}）`];
-  for (const p of r.items) {
-    lines.push(
-      `- [${p.id}] ${PLATFORM_CN[p.platform] ?? p.platform} ${p.created_at.slice(5, 16).replace("T", " ")} ` +
-        `${authorTag(p)} 赞${fmtNum(p.likes)} 评${fmtNum(p.comments_count)} 转${fmtNum(p.shares)}` +
-        `${p.sentiment ? " " + SENT_CN[p.sentiment] : ""}\n  ${oneLine(p.text, 90)}`,
-    );
-  }
-  if (r.total > (q.offset ?? 0) + r.items.length) lines.push(`（还有更多，可用 offset 翻页）`);
+function commentLine(c: Comment, withPost = true): string {
+  return (
+    `- [${c.id}] ${withPost ? `帖子${c.post_id} ` : ""}${c.platform} ${when(c.published_at)} 赞${c.likes}` +
+    `${c.reply_count ? ` 回复${c.reply_count}` : ""} ${sent(c.sentiment)}${c.is_reply ? " (楼中楼)" : ""}\n  ${oneLine(c.content, 120)}`
+  );
+}
+
+export function formatPosts(q: PostQuery, r: Page<Post>): string {
+  const sortCn = { comments: "评论数", negative: "消极评论数", latest: "时间" }[q.sort ?? "comments"];
+  const lines = [`共 ${r.total} 条帖子，返回 ${r.items.length} 条（offset ${q.offset ?? 0}，按${sortCn}排序）`, ...r.items.map(postLine)];
+  if (r.total > (q.offset ?? 0) + r.items.length) lines.push("（还有更多，可用 offset 翻页）");
   return lines.join("\n");
 }
 
-export function formatPost(p: Post): string {
-  const lines = [
-    `[${p.id}] ${PLATFORM_CN[p.platform] ?? p.platform} ${p.created_at.replace("T", " ").slice(0, 16)}`,
-    `作者：${p.author.name}（${authorTag(p)}）`,
-    `互动：赞 ${p.likes} / 评论 ${p.comments_count} / 转发 ${p.shares}${p.sentiment ? ` / 情绪 ${SENT_CN[p.sentiment]}` : ""}`,
-    `话题：${p.topics.map((t) => "#" + t).join(" ") || "无"}`,
+export function formatPost(d: PostDetail): string {
+  const p = d.post;
+  const cs = p.comment_sentiment;
+  return [
+    `[${p.id}] ${p.platform} ${p.published_at.replace("T", " ").slice(0, 16).replace(/ 00:00$/, "")}`,
+    `标题：${p.title}`,
+    `作者：${p.author}${p.url ? `　链接：${shortUrl(p.url)}` : ""}`,
+    `评论数 ${p.comment_count}；帖子情绪 ${sent(p.sentiment)}；评论情绪 积极 ${cs.positive} / 中性 ${cs.neutral} / 消极 ${cs.negative}`,
+    `相关性：${p.relevance ?? "-"}；来自搜索：${p.source_query || "-"}`,
     "",
-    p.text,
+    `高赞评论（${d.top_comments.length} 条，按点赞排序，作者已脱敏）：`,
+    ...d.top_comments.map((c) => commentLine(c, false)),
+  ].join("\n");
+}
+
+export function formatComments(q: CommentQuery, r: Page<Comment>): string {
+  const lines = [
+    `共 ${r.total} 条评论，返回 ${r.items.length} 条（按${q.sort === "latest" ? "时间" : "点赞"}排序，作者已脱敏）`,
+    ...r.items.map((c) => commentLine(c, !q.post_id)),
   ];
-  if (p.comments?.length) {
-    lines.push("", "热评：");
-    for (const c of p.comments.slice(0, 5)) lines.push(`- ${c.author}（赞${c.likes}）：${oneLine(c.text, 120)}`);
+  if (r.total > (q.offset ?? 0) + r.items.length) lines.push("（还有更多，可用 offset 翻页）");
+  return lines.join("\n");
+}
+
+export function formatTrend(q: TrendQuery, rows: TrendRow[]): string {
+  if (!rows.length) return "该条件下没有数据";
+  const head = q.group_by === "platform" ? "平台" : "日期";
+  const sum = rows.reduce((s, r) => ({ p: s.p + r.posts, c: s.c + r.comments }), { p: 0, c: 0 });
+  const lines = [`${head} | 新帖 | 新评论 | 评论情绪 积/中/消 | 消极占比（合计帖子 ${sum.p}，评论 ${sum.c}）`];
+  for (const r of rows) {
+    lines.push(`${r.key} | ${r.posts} | ${r.comments} | ${r.positive}/${r.neutral}/${r.negative} | ${pct(r.negative, r.positive + r.neutral + r.negative)}`);
   }
   return lines.join("\n");
 }
 
-export function formatTrend(q: TrendQuery, rows: TrendPoint[]): string {
-  if (!rows.length) return "该条件下没有数据";
-  const total = rows.reduce((s, r) => s + r.count, 0);
-  const lines = [`日期 | 帖子数 | 正/中/负 | 互动量（共 ${total} 条）`];
-  for (const r of rows) lines.push(`${r.date} | ${r.count} | ${r.positive}/${r.neutral}/${r.negative} | ${fmtNum(r.engagement)}`);
-  return lines.join("\n");
-}
-
-const PlatformList = Type.Optional(
-  Type.Array(Type.String(), { description: "平台过滤：xiaohongshu / weibo / douyin，不传表示全部" }),
-);
+// ── 参数 schema ──
+const Platforms = Type.Optional(Type.Array(Type.String(), { description: "平台过滤，取值见 dataset_info，如 抖音 / 小红书 / 微博；不传表示全部" }));
 const DateStr = (d: string) => Type.Optional(Type.String({ description: d + "，格式 YYYY-MM-DD" }));
+const SentimentP = Type.Optional(
+  Type.Union([Type.Literal("positive"), Type.Literal("neutral"), Type.Literal("negative")], { description: "情绪过滤" }),
+);
 
 export function createSocialExtension(emit: Emit, opts: SocialOptions) {
   return function social(pi: ExtensionAPI) {
     const provider = createProvider(opts);
 
-    async function run<T>(tool: string, op: "search" | "getPost" | "trend", params: any) {
+    async function run<T>(tool: string, op: Op, params: any) {
       const r = await provider.run<T>(op, params);
       emit({ type: "social_call", tool, params, cached: r.cached, mode: provider.mode, ms: r.ms });
       return r;
     }
+    const meta = (r: { cached: boolean; ms: number }, extra: object = {}) => ({ cached: r.cached, mode: provider.mode, ms: r.ms, ...extra });
+
+    pi.registerTool({
+      name: "dataset_info",
+      label: "数据概况",
+      description: "查看舆情数据集概况：帖子 / 评论总量、平台、时间范围、抓取时用了哪些搜索词。研究开始时先调用一次，用来确定时间范围和查询词。",
+      parameters: Type.Object({}),
+      async execute() {
+        const r = await run<DatasetInfo>("dataset_info", "info", {});
+        return { content: [{ type: "text", text: formatInfo(r.value) }], details: meta(r) };
+      },
+    } as any);
 
     pi.registerTool({
       name: "social_search",
-      label: "舆情搜索",
+      label: "搜索帖子",
       description:
-        "按关键词 / 话题 / 平台 / 时间范围搜索社交媒体帖子，返回摘要列表（帖子 ID、平台、时间、作者类型、互动数、情绪、正文前 90 字）。" +
-        "关键词里空格表示同时包含，| 表示任一。需要全文和评论时再用 get_post。",
+        "按关键词 / 平台 / 时间 / 情绪搜索帖子，返回摘要列表（ID、平台、时间、作者、评论数、评论情绪分布、相关性、来自搜索、标题）。" +
+        "关键词匹配标题和来自搜索字段，空格表示同时包含，| 表示任一。需要看评论时用 get_post 或 search_comments。",
       parameters: Type.Object({
-        keyword: Type.Optional(Type.String({ description: "关键词，如「栖木 桂花」「异物|塑料」" })),
-        topic: Type.Optional(Type.String({ description: "话题标签（不带 #）" })),
-        platforms: PlatformList,
+        keyword: Type.Optional(Type.String({ description: "关键词，如「英雄令」「英雄令 退款|充值」" })),
+        platforms: Platforms,
         start: DateStr("开始日期"),
         end: DateStr("结束日期（含）"),
-        sort: Type.Optional(Type.Union([Type.Literal("hot"), Type.Literal("latest")], { description: "hot=按热度（默认），latest=按时间" })),
+        sentiment: SentimentP,
+        relevance: Type.Optional(Type.String({ description: "按相关性标签过滤，取值见 dataset_info，如「相关」" })),
+        sort: Type.Optional(
+          Type.Union([Type.Literal("comments"), Type.Literal("negative"), Type.Literal("latest")], {
+            description: "comments=评论数最多（默认），negative=消极评论最多，latest=最新",
+          }),
+        ),
         limit: Type.Optional(Type.Number({ description: "返回条数，默认 10，最多 20" })),
         offset: Type.Optional(Type.Number({ description: "翻页偏移" })),
       }),
-      async execute(_id: string, params: SearchQuery) {
-        const r = await run<SearchResult>("social_search", "search", params);
+      async execute(_id: string, params: PostQuery) {
+        const r = await run<Page<Post>>("social_search", "searchPosts", params);
         return {
-          content: [{ type: "text", text: formatSearch(params, r.value) }],
-          details: { cached: r.cached, mode: provider.mode, ms: r.ms, total: r.value.total, ids: r.value.items.map((p) => p.id) },
+          content: [{ type: "text", text: formatPosts(params, r.value) }],
+          details: meta(r, { total: r.value.total, ids: r.value.items.map((p) => p.id) }),
         };
       },
     } as any);
@@ -135,14 +198,40 @@ export function createSocialExtension(emit: Emit, opts: SocialOptions) {
     pi.registerTool({
       name: "get_post",
       label: "读取帖子",
-      description: "按帖子 ID 读取全文、作者信息、互动数和热门评论。",
-      parameters: Type.Object({ id: Type.String({ description: "帖子 ID，来自 social_search 的结果" }) }),
-      async execute(_id: string, params: { id: string }) {
-        const r = await run<Post | null>("get_post", "getPost", params);
+      description: "按帖子 ID 读取帖子详情和高赞评论（按点赞排序）。",
+      parameters: Type.Object({
+        id: Type.String({ description: "帖子 ID，来自 social_search 的结果" }),
+        top_comments: Type.Optional(Type.Number({ description: "返回多少条高赞评论，默认 10，最多 20" })),
+      }),
+      async execute(_id: string, params: { id: string; top_comments?: number }) {
+        const r = await run<PostDetail | null>("get_post", "getPost", params);
         if (!r.value) throw new Error(`没有找到帖子 ${params.id}`);
+        return { content: [{ type: "text", text: formatPost(r.value) }], details: meta(r, { id: params.id }) };
+      },
+    } as any);
+
+    pi.registerTool({
+      name: "search_comments",
+      label: "搜索评论",
+      description:
+        "在评论里按关键词 / 情绪 / 平台 / 时间 / 所属帖子搜索，返回评论列表（作者已脱敏）。" +
+        "用来找具体观点和证据，比如「消极评论里提到最多的问题」「某个帖子下关于退款的讨论」。",
+      parameters: Type.Object({
+        keyword: Type.Optional(Type.String({ description: "匹配评论内容，规则同 social_search" })),
+        post_id: Type.Optional(Type.String({ description: "只看某个帖子下的评论" })),
+        platforms: Platforms,
+        start: DateStr("开始日期"),
+        end: DateStr("结束日期（含）"),
+        sentiment: SentimentP,
+        sort: Type.Optional(Type.Union([Type.Literal("likes"), Type.Literal("latest")], { description: "likes=点赞最多（默认），latest=最新" })),
+        limit: Type.Optional(Type.Number({ description: "返回条数，默认 15，最多 30" })),
+        offset: Type.Optional(Type.Number({ description: "翻页偏移" })),
+      }),
+      async execute(_id: string, params: CommentQuery) {
+        const r = await run<Page<Comment>>("search_comments", "searchComments", params);
         return {
-          content: [{ type: "text", text: formatPost(r.value) }],
-          details: { cached: r.cached, mode: provider.mode, ms: r.ms, id: params.id },
+          content: [{ type: "text", text: formatComments(params, r.value) }],
+          details: meta(r, { total: r.value.total }),
         };
       },
     } as any);
@@ -150,20 +239,17 @@ export function createSocialExtension(emit: Emit, opts: SocialOptions) {
     pi.registerTool({
       name: "social_trend",
       label: "声量趋势",
-      description: "按天统计符合条件的帖子数、正/中/负情绪分布和互动量。用来看整体走势、发现突增的日子。",
+      description: "统计新帖数、新评论数和评论情绪分布，可按天（默认）或按平台分组。用来看走势、找评论突增或消极占比升高的日子。",
       parameters: Type.Object({
-        keyword: Type.Optional(Type.String({ description: "关键词，规则同 social_search" })),
-        topic: Type.Optional(Type.String({ description: "话题标签（不带 #）" })),
-        platforms: PlatformList,
+        keyword: Type.Optional(Type.String({ description: "按帖子标题 / 来自搜索过滤，规则同 social_search" })),
+        platforms: Platforms,
         start: DateStr("开始日期"),
         end: DateStr("结束日期（含）"),
+        group_by: Type.Optional(Type.Union([Type.Literal("day"), Type.Literal("platform")], { description: "day=按天（默认），platform=按平台" })),
       }),
       async execute(_id: string, params: TrendQuery) {
-        const r = await run<TrendPoint[]>("social_trend", "trend", params);
-        return {
-          content: [{ type: "text", text: formatTrend(params, r.value) }],
-          details: { cached: r.cached, mode: provider.mode, ms: r.ms, days: r.value.length },
-        };
+        const r = await run<TrendRow[]>("social_trend", "trend", params);
+        return { content: [{ type: "text", text: formatTrend(params, r.value) }], details: meta(r, { rows: r.value.length }) };
       },
     } as any);
   };

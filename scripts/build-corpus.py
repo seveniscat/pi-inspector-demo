@@ -1,5 +1,5 @@
 """
-生成离线演示语料 data/corpus.json。
+生成离线演示数据集 data/demo/posts.json + comments.json（结构与真实 Excel 导出一致）。
 
 全部是虚构内容：虚构品牌「栖木咖啡」新品「桂花燕麦拿铁」上市一周（2026-10-08 ~ 10-14），
 竞品为虚构的「鹿岛咖啡」。语料里埋了几条线索，供 agent 自己去发现：
@@ -13,6 +13,11 @@
 """
 import json
 import pathlib
+
+def dt_shift(iso, minutes):
+    import datetime as _dt
+    d = _dt.datetime.fromisoformat(iso) + _dt.timedelta(minutes=minutes)
+    return d.isoformat(timespec="seconds")
 
 def A(name, followers, type="normal", verified=False):
     return {"name": name, "followers": followers, "verified": verified, "type": type}
@@ -215,8 +220,59 @@ P("WB-30615", "weibo", "10-14T21:30", A("福利搬运工", 410_000, "marketing")
   "转发抽 20 位送鹿岛桂花拿铁券！#抽奖# #鹿岛咖啡#",
   ["鹿岛咖啡", "抽奖"], 150, 6200, 9800, "neutral")
 
-out = pathlib.Path(__file__).resolve().parent.parent / "data" / "corpus.json"
-out.parent.mkdir(parents=True, exist_ok=True)
-posts.sort(key=lambda p: p["created_at"])
-out.write_text(json.dumps(posts, ensure_ascii=False, indent=1), encoding="utf-8")
-print(f"wrote {len(posts)} posts → {out}")
+# ── 转成与真实数据一致的"帖子 + 评论"两张表 ──
+import random
+random.seed(7)
+PLAT = {"xiaohongshu": "小红书", "weibo": "微博", "douyin": "抖音"}
+FILLER = {
+    "positive": ["桂花香确实很真", "燕麦奶好顺", "已经回购了", "杯套太好看了", "19.9 很值", "比想象中好喝"],
+    "neutral": ["求问哪个城市有", "还没喝过，观望", "有人对比过鹿岛吗", "插眼", "明天去试试", "热量高吗"],
+    "negative": ["太甜了喝不完", "恢复原价就不买了", "杭州那事还没说法吧", "客服说封口膜太离谱", "品控堪忧", "先观望一阵"],
+}
+RISK = ("异物", "塑料", "封口膜", "泵头", "暂停")
+def sent_of(text, base):
+    if any(w in text for w in ("离谱", "失望", "生气", "不买账", "太甜", "齁", "慌", "不能忘", "敷衍")):
+        return "negative"
+    if any(w in text for w in ("好看", "冲了", "顺", "值", "给个态度分", "处理得还行", "终于")):
+        return "positive"
+    return base if base != "positive" else "neutral"
+
+out_posts, out_comments = [], []
+cid = 1
+for p in posts:
+    risk = any(w in p["text"] for w in RISK)
+    is_ludao = "鹿岛" in p["text"] and "栖木" not in p["text"]
+    noise = p["author"]["type"] == "marketing" or any(t in p["topics"] for t in ("抽奖", "合作", "广告"))
+    comments = []
+    for c in p["comments"]:
+        comments.append((c["text"], c["likes"], sent_of(c["text"], p["sentiment"]), p["created_at"]))
+    n_fill = min(14, max(2, p["comments_count"] // 600))
+    for k in range(n_fill):
+        s = random.choices(["positive", "neutral", "negative"],
+                           weights={"positive": (6, 3, 1), "neutral": (3, 5, 2), "negative": (1, 3, 6)}[p["sentiment"]])[0]
+        t = dt_shift(p["created_at"], random.randint(5, 600))
+        comments.append((random.choice(FILLER[s]), random.randint(0, max(3, p["likes"] // 200)), s, t))
+    cs = {"positive": 0, "neutral": 0, "negative": 0}
+    for text, likes, s, t in comments:
+        cs[s] += 1
+        out_comments.append({
+            "id": f"C{cid:05d}", "post_id": p["id"], "post_title": p["text"][:30], "platform": PLAT[p["platform"]],
+            "author": f"用户{random.randint(1000, 9999)}", "content": text, "likes": likes, "sentiment": s,
+            "is_reply": False, "reply_count": random.randint(0, 5) if likes > 100 else 0, "published_at": t,
+        })
+        cid += 1
+    out_posts.append({
+        "id": p["id"], "platform": PLAT[p["platform"]], "platform_id": p["id"].split("-")[1], "title": p["text"],
+        "author": p["author"]["name"] + {"official": "（官方）", "media": "（媒体）", "kol": "（KOL）", "marketing": "（营销号）"}.get(p["author"]["type"], ""),
+        "url": f"https://example.com/{p['id']}", "comment_count": p["comments_count"], "sentiment": p["sentiment"],
+        "comment_sentiment": cs, "relevance": "不相关" if noise else "相关",
+        "source_query": "鹿岛 桂花拿铁" if is_ludao else ("栖木 异物" if risk else "栖木 桂花燕麦拿铁"),
+        "published_at": p["created_at"], "crawled_at": "2026-10-15T09:00:00+08:00",
+    })
+
+out = pathlib.Path(__file__).resolve().parent.parent / "data" / "demo"
+out.mkdir(parents=True, exist_ok=True)
+out_posts.sort(key=lambda p: p["published_at"])
+(out / "posts.json").write_text(json.dumps(out_posts, ensure_ascii=False, indent=1), encoding="utf-8")
+(out / "comments.json").write_text(json.dumps(out_comments, ensure_ascii=False, indent=1), encoding="utf-8")
+print(f"wrote {len(out_posts)} posts, {len(out_comments)} comments → {out}")

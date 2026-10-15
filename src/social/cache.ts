@@ -11,6 +11,8 @@ import fs from "node:fs";
 import path from "node:path";
 import type { SocialProvider } from "./types.ts";
 
+export type Op = "info" | "searchPosts" | "getPost" | "searchComments" | "trend";
+
 export interface CacheHit<T> {
   value: T;
   cached: boolean;
@@ -29,7 +31,22 @@ export function stableKey(op: string, params: unknown): string {
               .map((k) => [k, norm(v[k])]),
           )
         : v;
-  return crypto.createHash("sha1").update(op + ":" + JSON.stringify(norm(params))).digest("hex").slice(0, 16);
+  return crypto.createHash("sha1").update(op + ":" + JSON.stringify(norm(params ?? {}))).digest("hex").slice(0, 16);
+}
+
+function dispatch(p: SocialProvider, op: Op, params: any): Promise<unknown> {
+  switch (op) {
+    case "info":
+      return p.info();
+    case "searchPosts":
+      return p.searchPosts(params);
+    case "getPost":
+      return p.getPost(params.id, params.top_comments);
+    case "searchComments":
+      return p.searchComments(params);
+    case "trend":
+      return p.trend(params);
+  }
 }
 
 export class CachedProvider {
@@ -45,19 +62,14 @@ export class CachedProvider {
     fs.mkdirSync(dir, { recursive: true });
   }
 
-  async run<T>(op: "search" | "getPost" | "trend", params: unknown): Promise<CacheHit<T>> {
+  async run<T>(op: Op, params: unknown): Promise<CacheHit<T>> {
     const t0 = Date.now();
     const file = path.join(this.dir, `${op}-${stableKey(op, params)}.json`);
     if (fs.existsSync(file)) {
       return { value: JSON.parse(fs.readFileSync(file, "utf8")).value, cached: true, ms: Date.now() - t0 };
     }
     if (!this.inner) throw new Error(`replay 模式下没有这次查询的录制结果（${op} ${JSON.stringify(params)}）`);
-    const value: any =
-      op === "search"
-        ? await this.inner.search(params as any)
-        : op === "getPost"
-          ? await this.inner.getPost((params as any).id)
-          : await this.inner.trend(params as any);
+    const value = (await dispatch(this.inner, op, params)) as T;
     // 先写临时文件再 rename：kill 发生在写入中途也不会留下半个缓存文件
     const tmp = file + ".tmp";
     fs.writeFileSync(tmp, JSON.stringify({ op, params, at: new Date().toISOString(), value }));

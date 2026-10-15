@@ -1,6 +1,6 @@
 # pi-inspector-demo
 
-Pi 技术分享的演示项目：用 Pi SDK 嵌入 agent，做一个可中断、可恢复的舆情 research bot，配 Web UI（Pi Agent Inspector）可视化执行过程。完整说明见 README.md。
+Pi 技术分享的演示项目：用 Pi SDK 嵌入 agent，做一个可中断、可恢复的舆情分析助手（输入"关于英雄令的舆情" → 带引用的报告），配 Web UI（Pi Agent Inspector）可视化执行过程。完整说明和链路见 README.md。
 
 ## 演示要覆盖的 6 个能力（改动不能削弱任何一个）
 
@@ -10,16 +10,17 @@ Pi 技术分享的演示项目：用 Pi SDK 嵌入 agent，做一个可中断、
 ## 结构
 
 - `src/server.ts`：SDK 组装、SSE、控制接口（/api/prompt、steer、resume、model、compact、abort）
-- `src/extensions/social.ts`：舆情服务 → `social_search` / `get_post` / `social_trend`
+- `src/extensions/social.ts`：数据 → 5 个工具 `dataset_info` / `social_search` / `get_post` / `search_comments` / `social_trend`
 - `src/extensions/resume.ts`：checkpoint、恢复、悬空 toolCall 修补、观测事件（`resume_*`）
-- `src/social/`：数据层。`mock`（data/corpus.json）/ `live`（真实服务，字段映射待填）/ `replay`（只读缓存）；`cache.ts` 按请求缓存
+- `src/social/`：数据层，"帖子 + 评论"两张表模型（types.ts）。`local`（data/<dataset>/posts.json + comments.json）/ `live`（远程接口，字段映射待填）/ `replay`（只读缓存）；`cache.ts` 按请求缓存
 - `public/index.html`：Inspector，单文件无构建；事件类型改动要同时改这里的 `render()`
 - `workspace/`：agent 的 cwd。skill 在 `.pi/skills/opinion-research/`，项目约定在 `AGENTS.md`
-- `data/corpus.json` 由 `scripts/build-corpus.py` 生成，**改语料改脚本，不要手改 JSON**
+- `data/demo/` 由 `scripts/build-corpus.py` 生成（虚构品牌），**改演示数据改脚本，不要手改 JSON**
+- `data/real/` 由 `scripts/import-excel.py` 从用户的 Excel 导入，**真实数据，绝不提交**
 
 ## 改完必须做
 
-1. `npm test`：数据层冒烟测试（不需要模型 key）
+1. `npm test`：数据层冒烟测试（不需要模型 key）；有 data/real 时再跑 `SMOKE_DATASET=real npm test`
 2. 语法检查：`for f in src/*.ts src/*/*.ts; do node --experimental-strip-types --check $f; done`
 3. 改了 UI：抽出 `<script>` 用 `node --check` 检查，最好用 Playwright 截图看一眼
 4. README 的"演示脚本"和"自检清单"跟着更新
@@ -28,5 +29,6 @@ Pi 技术分享的演示项目：用 Pi SDK 嵌入 agent，做一个可中断、
 
 - Pi 包是 `@earendil-works/pi-coding-agent`，基线 1.1.0。API 以官方仓库 earendil-works/pi 的 docs 为准，不确定的地方用 `as any` 并在 README 自检清单里加一条
 - 演示语料是虚构品牌，页面和报告里要能看出是演示数据
-- 不要提交 `.env`、`data/cache/`、`logs/`、`workspace/research/`、`workspace/report/`
+- 不要提交 `.env`、`data/real/`、`*.xlsx`、`data/cache/`、`logs/`、`workspace/research/`、`workspace/report/`
+- 工具输出不带评论作者（脱敏）；报告不写评论用户昵称
 - 提交信息用中文，conventional commits 前缀（feat/fix/docs/chore）

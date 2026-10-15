@@ -5,3 +5,8 @@ logs/
 workspace/research/
 workspace/report/
 data/cache/
+# 真实舆情数据不入库
+data/real/
+data/*.xlsx
+*.xlsx
+__pycache__/
