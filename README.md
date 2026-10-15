@@ -30,6 +30,7 @@ npm run start:new         # 新会话，浏览器打开 http://localhost:5173
 | `npm run kill` | 另开终端执行，SIGKILL 模拟崩溃 |
 | `npm run reset` | 清空 research/ report/ logs/ 和 mock 缓存；加 `-- --all` 连 live 录制一起清 |
 | `npm run corpus` | 重新生成离线演示语料 |
+| `npm test` | 数据层冒烟测试（不需要模型 key） |
 | `npm run pi` | 把 resume extension 加载进 pi CLI |
 
 ## 数据源：mock / live / replay

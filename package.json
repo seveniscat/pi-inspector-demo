@@ -1,5 +1,5 @@
 {
-  "name": "pi-resume-demo",
+  "name": "pi-inspector-demo",
   "version": "1.0.0",
   "private": true,
   "description": "Pi 技术分享演示：可中断、可恢复的舆情 research bot + 执行过程可视化",
@@ -13,7 +13,8 @@
     "kill": "node scripts/kill.mjs",
     "reset": "node scripts/reset.mjs",
     "corpus": "python3 scripts/build-corpus.py",
-    "pi": "cd workspace && pi -e ../src/extensions/resume.ts"
+    "pi": "cd workspace && pi -e ../src/extensions/resume.ts",
+    "test": "node --experimental-strip-types --no-warnings scripts/smoke.ts"
   },
   "dependencies": {
     "@earendil-works/pi-coding-agent": "^1.1.0",
