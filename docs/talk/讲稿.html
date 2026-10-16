@@ -1,0 +1,217 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Pi 技术分享讲稿</title>
+<style>
+:root { --bg:#FBFAF7; --fg:#1B2026; --dim:#5A636C; --line:#E2DED4; --accent:#9A5A00; --code:#F1EEE6; --quote:#FFF6E3; }
+@media (prefers-color-scheme: dark) { :root { --bg:#0E1116; --fg:#E6E9EE; --dim:#9AA3AD; --line:#262D37; --accent:#F2B84B; --code:#171C24; --quote:#1C1810; } }
+* { box-sizing:border-box; }
+body { margin:0; background:var(--bg); color:var(--fg); font:16px/1.75 "Noto Sans SC","PingFang SC","Microsoft YaHei",system-ui,sans-serif; }
+main { max-width:860px; margin:0 auto; padding:48px 20px 96px; }
+h1 { font-size:32px; line-height:1.3; margin:0 0 4px; }
+h2 { font-size:24px; margin:56px 0 12px; padding-top:16px; border-top:1px solid var(--line); }
+h3 { font-size:19px; margin:32px 0 8px; color:var(--accent); }
+h4 { font-size:16px; margin:24px 0 6px; }
+p { margin:10px 0; }
+h1 + p { color:var(--dim); font-size:14px; }
+blockquote { margin:12px 0; padding:10px 18px; background:var(--quote); border-left:4px solid var(--accent); border-radius:6px; }
+blockquote p { margin:8px 0; }
+code { font-family:"JetBrains Mono",ui-monospace,Menlo,monospace; font-size:.9em; background:var(--code); padding:1px 5px; border-radius:4px; }
+pre { background:var(--code); padding:12px 16px; border-radius:8px; overflow:auto; white-space:pre-wrap; word-break:break-word; }
+pre code { background:none; padding:0; }
+table { border-collapse:collapse; width:100%; margin:12px 0; font-size:14px; display:block; overflow-x:auto; }
+th, td { border:1px solid var(--line); padding:6px 10px; text-align:left; vertical-align:top; }
+th { background:var(--code); }
+ul, ol { padding-left:1.4em; }
+a { color:var(--accent); }
+@media print { body { background:#fff; color:#000; } h2 { page-break-before:auto; } }
+</style>
+</head>
+<body>
+<main>
+<h1 id="pi-技术分享讲稿">Pi 技术分享讲稿</h1>
+<p><time data-atom="date" datetime="2026-10-16">2026-10-16</time> · @tinyme</p>
+<h2 id="讲稿说明">讲稿说明</h2>
+<p>讲稿按当前幻灯片顺序编排，共 31 页，页码与幻灯片一致。正文是可以直接念的口语稿，括号标记是给自己看的提示。</p>
+<p>版本口径：全场讲 v1.2.0（2026-10-12 发布），源码走读对应 main 分支提交 3daa202。只有 Demo 第 7 步的官方 Durable 实验版在 v1.1.0 上跑，因为 1.2.0 已移除 src/experimental。</p>
+<table><thead><tr><th>段落</th><th>页码</th><th>时长</th><th>核心一句话</th></tr></thead><tbody><tr><td>开场</td><td>1–2</td><td>1.5 分钟</td><td>从是什么、怎么用、怎么运转、能做什么四层讲 Pi</td></tr><tr><td>01 Pi 是什么</td><td>3–5</td><td>5 分钟</td><td>小内核、刻意留白，四种宿主共用一个 loop</td></tr><tr><td>02 上手</td><td>6–7</td><td>8 分钟</td><td>在 sentiment-kit 上现场修 bug、换模型 review</td></tr><tr><td>03 源码走读 · Loop</td><td>8–12</td><td>8.5 分钟</td><td>turn 是基本单位，进度全部是事件</td></tr><tr><td>03 源码走读 · Extensions</td><td>13–18</td><td>9 分钟</td><td>能力靠钩子和工具暴露从外面长出来，现场让 Pi 给自己写拦截扩展</td></tr><tr><td>03 源码走读 · Sessions</td><td>19–22</td><td>7 分钟</td><td>会话是一棵树；进程挂了有三种接法</td></tr><tr><td>04 Demo</td><td>23–25</td><td>14 分钟</td><td>一句话进去、一份报告出来，6 个能力全部出现</td></tr><tr><td>05 探索与收尾</td><td>26–27</td><td>3 分钟</td><td>从方向 A、B 试起，升级前先读 changelog</td></tr><tr><td>附录</td><td>28–31</td><td>不讲</td><td>安装、参考资料、Demo 兜底截图</td></tr></tbody></table>
+<p>全场约 56 分钟，不含 Q&amp;A。时段只有 45 分钟时，按这个顺序压：第 7 页去掉 Round 4（省 2 分钟，换模型留给 Demo 第 5 步）；第 18 页一句带过；Demo 第 7 步只播 30 秒录屏；第 12 页跳过三个例外；第 21 页只看文件头和 parentId，不现场 /tree。</p>
+<p>标记约定：【演示】现场操作；【待你补充】换成你自己的真实经历或数据，不能照念；【核对】讲之前确认的命令或事实。</p>
+<h2 id="开场15-分钟">开场（1.5 分钟）</h2>
+<h3 id="第-1-页-封面">第 1 页 · 封面</h3>
+<blockquote><p>大家好。今天讲 Pi，一个最小化、可扩展的 agent harness。在座各位每天都在用 coding agent，所以我不讲什么是 agent，直接讲 Pi 本身。</p><p>内容基于 Pi 的 v1.2.0 和 main 分支源码，每页右下角都标了来源。</p></blockquote>
+<h3 id="第-2-页-议程">第 2 页 · 议程</h3>
+<blockquote><p>一共五段。先用三页建立第一印象；然后现场用 Pi 做一次真实的开发任务；接着带着三个关键词走读源码：Loop、Extensions、Sessions；再用一个 demo 把这三个关键词串起来跑一遍；最后讲我们团队可以从哪里开始探索。</p></blockquote>
+<h2 id="01-pi-是什么5-分钟">01 Pi 是什么（5 分钟）</h2>
+<h3 id="第-3-页-pi一个可以做成你自己的-agent-harness2-分钟">第 3 页 · Pi：一个可以做成你自己的 Agent Harness（2 分钟）</h3>
+<blockquote><p>官方给 Pi 的定位就两个词：minimal 和 extensible。官方的说法是，让 Pi 适应你的工作流，而不是反过来。</p><p>具体是三点。第一，强默认：开箱就是一个能用的 coding agent CLI，带 read、bash、edit、write 这些基础工具。第二，刻意留白：sub-agent、plan mode、权限系统，这三样都不内置。第三，按工作流定制：extensions、skills、prompt templates、themes 可以打包成 Pi package，通过 npm 或 git 分发。</p><p>代价也很明确：灵活性交给你，边界和治理也交给你。刻意留白的这三件事，后面讲扩展时会看到它们怎么从外面补上，以及边界该怎么画。</p></blockquote>
+<h3 id="第-4-页-同一个内核四种用法15-分钟">第 4 页 · 同一个内核，四种用法（1.5 分钟）</h3>
+<blockquote><p>Pi 有四种用法。交互式 TUI，日常用的就是它；print 和 JSON 模式，给脚本和流水线；RPC，让别的进程驱动 Pi，适合嵌进自己的界面；TypeScript SDK，把 agent 当库来用，官方举的真实集成例子是 OpenClaw。</p><p>这一页的重点不是四种模式本身，而是它说明了一件事：agent loop 和界面、传输方式是解耦的。loop 只产出事件，谁来显示、怎么传输，都在它外面。后面讲 Loop 时，会在源码里看到这个落点。</p></blockquote>
+<h3 id="第-5-页-分层架构按真实依赖画15-分钟">第 5 页 · 分层架构：按真实依赖画（1.5 分钟）</h3>
+<blockquote><p>这张图按 main 分支各包 package.json 的依赖画，不是照 README 的介绍画。</p><p>主干是三层。最上面是 pi-coding-agent，就是我们用的 CLI，会话、内置工具、skills、扩展都在这一层。它下面是 pi-agent-core，只有 Agent 类和 agent loop。再往下是 pi-ai，统一的多厂商 LLM 接口。pi-tui、pi-mcp、pi-codemode 也是 coding-agent 的直接依赖，分别是终端 UI、MCP 客户端和沙箱脚本执行。</p><p>右边两个单独说。pi-durable 不是 coding-agent 的底层，它是和 agent-core 平行的另一套 harness：先提交再展示，崩溃后从 checkpoint 继续，目前是实验性的。chord 是插件运行时，1.2.0 起 coding-agent 已经不依赖它了。</p><p>容易误解的一点：agent-core 很薄，会话、压缩、skills 都是 coding-agent 自己实现的。所以后面走读源码，Loop 看 agent 包，Extensions 和 Sessions 看 coding-agent。</p></blockquote>
+<h2 id="02-上手一次真实的开发任务8-分钟">02 上手：一次真实的开发任务（8 分钟）</h2>
+<p>演示项目是 sentiment-kit：舆情帖子统计 CLI，零依赖，和后面的舆情 demo 同一主题。完整脚本见项目文档《Pi 编码演示脚本》，这里只跑 Round 0、1、2、4。</p>
+<h3 id="第-6-页-一次真实的开发任务看-pi-怎么干活1-分钟">第 6 页 · 一次真实的开发任务：看 Pi 怎么干活（1 分钟）</h3>
+<blockquote><p>讲源码之前，先看它干活。我准备了一个小项目，sentiment-kit，统计舆情帖子的命令行工具，里面埋了两个 bug。这一页是接下来要用到的按键，不用记，演示里都会出现。</p><p>只提醒一点：Pi 不会在每次工具调用前问你确认。所以演示放在一个单独复制出来的目录里，打了 git 标签，随时能复原。</p></blockquote>
+<h3 id="第-7-页-演示sentiment-kit7-分钟">第 7 页 · 演示：sentiment-kit（7 分钟）</h3>
+<p>【演示】切到终端，cd ~/pi-coding-demo，启动 pi。</p>
+<h4 id="round-0-开场看-bug30-秒">Round 0 · 开场看 bug（30 秒）</h4>
+<blockquote><p>先看启动头：加载了 AGENTS.md、1 个 skill、1 个 prompt template。项目规则写在仓库里，不用每次口头交代。</p></blockquote>
+<p>【演示】输入（可直接粘贴）：</p>
+<pre><code>!!npm run -s top</code></pre>
+<blockquote><p>两个感叹号，只在终端跑，输出不发给模型；一个感叹号，命令和输出都会进对话。大家看“互动最高的帖子”，是一个 816 互动的帖子，明显不对。</p></blockquote>
+<h4 id="round-1-让它读懂项目15-分钟">Round 1 · 让它读懂项目（1.5 分钟）</h4>
+<p>【演示】输入：</p>
+<pre><code>先别改任何代码。快速读一下这个项目，用 5 行以内告诉我：它是干什么的、入口在哪、测试怎么跑、有哪些项目约定。</code></pre>
+<blockquote><p>看工具调用一条条出来：ls、read。回答里它会复述“零依赖、import 带 .ts、不改 test/”，这些不是它猜的，来自 AGENTS.md。Pi 的系统提示很短，内置工具就 read、bash、edit、write 加几个查找工具，项目知识靠 AGENTS.md 注入，而不是堆 prompt。</p></blockquote>
+<p>【演示】Ctrl+O 展开一次工具输出，再收起。</p>
+<h4 id="round-2-测试驱动修-bug3-分钟">Round 2 · 测试驱动修 bug（3 分钟）</h4>
+<p>【演示】输入：</p>
+<pre><code>跑一下测试，把失败的修好。规则：只改 src/，不许改 test/。修完再跑一遍确认全绿，最后用两句话说清两个 bug 的根因。</code></pre>
+<blockquote><p>看这个循环：bash 跑测试、read 读代码、edit 改代码、再跑测试。只要模型还在发工具调用，就执行、把结果放回上下文、再调模型，直到它不再调工具。这就是 agent loop，源码部分会打开它。</p></blockquote>
+<p>【演示】它还在干活时，直接输入并回车：</p>
+<pre><code>修完顺便跑一下 top 3 给我看</code></pre>
+<blockquote><p>回车发的是 steering，不用打断重来，当前这批工具执行完就插进去。Alt+Enter 发的是 follow-up，要等整个任务做完才处理。这两个的区别，源码里就是一个判断，等会儿看。</p></blockquote>
+<blockquote><p>结果：两个 bug，一个是排序方向反了，一个是 CSV 里双引号转义没处理。</p></blockquote>
+<p>注意：“不许改 test/”现在只是写给模型看的规则，第 15 页会让 Pi 自己写一个扩展把它变成硬约束。</p>
+<h4 id="round-4-换个模型做-review2-分钟">Round 4 · 换个模型做 review（2 分钟）</h4>
+<p>【演示】按 Ctrl+P 切到另一家的模型，指一下 footer 里模型名变了。然后输入：</p>
+<pre><code>/review 重点看两个 bug 的修法，有没有漏掉的边界情况</code></pre>
+<blockquote><p>/review 是仓库里的 .pi/prompts/review.md，一个带参数的 Markdown，展开成完整的 review 指令，团队可以一起维护。</p><p>同一个会话中途换了厂商，上下文照样接着用。实际用法就是写代码用 A、review 用 B，避免同一个模型给自己打分。换模型时历史怎么转换，Demo 前会讲。</p></blockquote>
+<h4 id="收尾一句30-秒">收尾一句（30 秒）</h4>
+<blockquote><p>今天没演示到的几个，口头说一下。仓库里还有一个 add-command skill，平时不进上下文，任务匹配了才读进来，Demo 里会看到它怎么加载。/tree 回到早先的节点换个做法，第 21 页会打开会话文件看它怎么存。还有无头模式：git diff | pi -p 一次性调用，输出就退出，适合放进脚本和流水线。</p></blockquote>
+<p>【演示】不退出这个 pi 会话，第 15 页还要回来。</p>
+<p>过渡：</p>
+<blockquote><p>看完它怎么干活，接下来打开源码，看它为什么这样干活。</p></blockquote>
+<h2 id="03-源码走读-loop85-分钟">03 源码走读 · Loop（8.5 分钟）</h2>
+<h3 id="第-8-页-三个关键词带着走读源码30-秒">第 8 页 · 三个关键词，带着走读源码（30 秒）</h3>
+<blockquote><p>源码部分只抓三个关键词。Loop：一条 prompt 进去之后，turn 怎么循环。Extensions：默认没有的能力，怎么从外面长出来。Sessions：会话怎么存，进程挂了怎么接上。</p><p>每个关键词都是三步：先看文档里的行为，再到源码或终端里现场验证，最后在 demo 里看它真实运行。</p></blockquote>
+<h3 id="第-9-页-一条-prompt-的事件流turn-是基本单位15-分钟">第 9 页 · 一条 prompt 的事件流：turn 是基本单位（1.5 分钟）</h3>
+<blockquote><p>先问大家一个问题：一条 prompt，模型调了一次工具，会产生几个 turn？</p></blockquote>
+<p>【停顿，收两三个答案】</p>
+<blockquote><p>答案是两个。第一个 turn，模型请求工具、工具执行；第二个 turn，把工具结果交回模型，模型给出回答。所以 turn 的定义是：一次 LLM 调用，加上它触发的所有工具执行。助手不再请求工具、队列也空了，loop 才结束。</p><p>看左边这串事件：agent_start、turn_start、message、tool_execution、turn_end，进度全部以事件流出，界面只需要订阅。这就是前面说的，一个内核能服务四种宿主的原因。</p></blockquote>
+<h3 id="第-10-页-控制流turn-循环直到无事可做2-分钟">第 10 页 · 控制流：turn 循环，直到无事可做（2 分钟）</h3>
+<blockquote><p>把事件流画成控制流。prompt 进来，先整理上下文：transformContext 可以裁剪、注入；convertToLlm 只留下 user、assistant、toolResult 三种角色。然后 LLM 流式返回。</p><p>有工具调用，走下面这一圈。参数校验后先过 beforeToolCall，这里可以拦截；工具默认并行执行；afterToolCall 可以改写结果。结果写回，turn 结束，然后查一次 steering 队列，有就注入，开新 turn，让模型读工具结果。</p><p>没有工具调用，走右边。同样先查 steering；没有 steering，再查 followUp；有消息就注入、开新 turn；都没有，才 agent_end。</p><p>steer 和 followUp 的本质区别就在这里：steer 每个 turn 结束都查，followUp 只在 agent 本来要停下时才查。刚才演示里 Enter 和 Alt+Enter 的不同，就是这一个判断。</p></blockquote>
+<h3 id="第-11-页-loop-上的四个可控点15-分钟">第 11 页 · loop 上的四个可控点（1.5 分钟）</h3>
+<blockquote><p>这张图上有四个地方可以插手：调用前改上下文、工具的执行方式、工具前后的钩子、两种插话。我挑一个讲透：parallel。</p><p>一批工具调用，先按顺序逐个预检，通过的再并发执行。结束事件按完成顺序发，谁先跑完谁先发；但写进会话的 toolResult，仍然按模型发出调用的原顺序。并发换速度，顺序保证会话记录稳定。任一工具声明 executionMode: &quot;sequential&quot;，整批就改为顺序执行。</p><p>再补一个细节：如果整批工具调用都返回 terminate: true，后续的 LLM 调用会直接跳过。</p></blockquote>
+<h3 id="第-12-页-演示agent-loopts3-分钟">第 12 页 · 演示：agent-loop.ts（3 分钟）</h3>
+<p>【演示】切到编辑器，打开 packages/agent/src/agent-loop.ts。行号对应 main 提交 3daa202（v1.2.0）。</p>
+<blockquote><p>刚才那张图，我们在源码里对一遍，就看四个地方。</p></blockquote>
+<p>【演示】L163 runLoop，指 L179 和 L183。</p>
+<blockquote><p>这是两层循环。L179 外层 while(true)，负责等 followUp；L183 内层 while，转一圈就是一个 turn。</p></blockquote>
+<p>【演示】L287 turn_end，下移到 L295。</p>
+<blockquote><p>L287 发出 turn_end，紧接着 L295 轮询 steering。注意，不管这一轮有没有工具调用，都会走到这里。这就是流程图里那条“注入 steer 后开新 turn”的回边。</p></blockquote>
+<p>【演示】L302 getFollowUpMessages。</p>
+<blockquote><p>followUp 在这里，在内层循环之外。只有内层循环退出，也就是 agent 本来要停下时，才会调用。和 steer 的区别，在代码上就是一个在循环里、一个在循环外。</p></blockquote>
+<p>【演示】L508 executeToolCalls，指 L519 和 L586。</p>
+<blockquote><p>工具执行在这里分叉。L519：配置成 sequential，或者任一工具要求 sequential，就顺序执行。否则进 L586 executeToolCallsParallel：先逐个 prepareToolCall 预检，通过的并发执行，结果按助手消息里的原顺序写回。</p></blockquote>
+<p>【时间够再讲，不够跳过】</p>
+<blockquote><p>还有三个例外。L244，模型返回 error 或 aborted，直接 agent_end。L289，finishTurn 返回 end，也直接结束，不再轮询。L205 还有一次轮询：准备下一个 turn 耗时较长时，比如正在压缩，期间进来的 steering 在这里补收。</p></blockquote>
+<p>【核对】讲之前在 main 上按函数名搜一遍，确认行号没变。</p>
+<p>过渡：</p>
+<blockquote><p>Loop 本身是封闭的，只留了这几个口子。Pi 默认没有的能力，都是从这些口子外面长出来的。这就是第二个关键词：Extensions。</p></blockquote>
+<h2 id="03-源码走读-extensions9-分钟">03 源码走读 · Extensions（9 分钟）</h2>
+<h3 id="第-13-页-扩展点想加什么找哪个-api1-分钟">第 13 页 · 扩展点：想加什么，找哪个 API（1 分钟）</h3>
+<blockquote><p>这是扩展的地图。想观察或修改生命周期，用 pi.on；加一个模型能调用的工具，用 registerTool；加一个斜杠命令，用 registerCommand；要持久化、但不想进模型上下文的数据，用 appendEntry。还有加模型厂商、加 MCP 服务器、按请求路由到不同模型。这些入口都挂在同一个 ExtensionAPI 上。</p><p>接下来分三步看：一个扩展最少长什么样，它靠什么改变行为，它的边界在哪。</p></blockquote>
+<h3 id="第-14-页-最小的扩展导出一个工厂函数1-分钟">第 14 页 · 最小的扩展：导出一个工厂函数（1 分钟）</h3>
+<blockquote><p>一个扩展，就是一个默认导出的工厂函数，参数是 pi。这里注册了一个 /hello 命令，handler 拿到命令后面的文本，用 ctx.ui 弹一条通知。工厂可以是异步的，Pi 会等它完成再继续启动。</p><p>三个细节。放进 ~/.pi/agent/extensions/ 就自动加载，或者用 --extension 指定文件。用 jiti 加载，TypeScript 不用编译。工厂里不要起进程和定时器，放到 session_start 里。</p><p>registerTool 的形态类似，多了给模型看的描述、一个 TypeBox 参数 schema 和 execute。</p></blockquote>
+<h3 id="第-15-页-演示让-pi-给自己写扩展3-分钟">第 15 页 · 演示：让 Pi 给自己写扩展（3 分钟）</h3>
+<p>【演示】切回第 7 页那个 pi 会话（~/pi-coding-demo）。输入：</p>
+<pre><code>给你自己写一个 Pi 扩展，路径 .pi/extensions/guard-tests.ts：监听 tool_call 事件，拦截所有对 test/ 目录的 write 和 edit，返回 block，reason 写&quot;测试文件受保护，请修改实现代码&quot;，同时用 ctx.ui.notify 弹一个 warning。API 不确定就先看你自己的文档和 extensions 示例。只写这一个文件，写完不要做别的。</code></pre>
+<blockquote><p>刚才看了扩展最少长什么样。Pi 的官方立场是：缺什么，让 Pi 自己写。我们就让它给自己写一个。</p></blockquote>
+<p>【演示】写完后亮代码（两个感叹号，只显示、不进上下文）：</p>
+<pre><code>!!cat .pi/extensions/guard-tests.ts</code></pre>
+<blockquote><p>大概二十行，就是上一页那个工厂函数。重点看两处：pi.on(&quot;tool_call&quot;, …)，和 return { block: true, reason }。</p></blockquote>
+<p>【演示】热加载：</p>
+<pre><code>/reload</code></pre>
+<blockquote><p>不用编译、不用重启，jiti 直接加载 TypeScript。</p></blockquote>
+<p>【演示】故意让它干坏事：</p>
+<pre><code>把 test/stats.test.ts 里 topPosts 那个用例的期望值改成 [&quot;p05&quot;, &quot;p13&quot;, &quot;p17&quot;]。</code></pre>
+<blockquote><p>看，黄色警告弹出来了，那次 edit 变成了一个错误的工具结果。模型读到 reason，会解释改不了，或者转去看实现代码。</p><p>第 7 页里“不许改 test/”只是写给模型看的规则，现在变成了执行前的硬拦截。真实工作流就是：让 Pi 写，人 review，提交到仓库的 .pi/extensions/，同事 clone 下来、信任项目后自动生效；通用的再打包成 package，用 pi install 分发。</p></blockquote>
+<p>【兜底】写崩了或 API 用错：!!cp demo-assets/guard-tests.ts .pi/extensions/，再 /reload。</p>
+<h3 id="第-16-页-扩展靠两样东西改变行为钩子与工具暴露2-分钟">第 16 页 · 扩展靠两样东西改变行为：钩子与工具暴露（2 分钟）</h3>
+<blockquote><p>Pi 默认没有的功能，就是靠这两个机制从外面长出来的。</p><p>左边是事件钩子。tool_call 可以改写入参，或者直接阻止执行，权限确认、路径保护都从这里做；before_agent_start 调整提示词片段和工具；tool_result 改写工具结果，多个 handler 依次叠加；context 改写发给模型的对话。</p><p>右边是工具暴露，决定模型能不能直接看到一个工具。默认是 direct，声明给模型；codemode 是给沙箱脚本调用的；deferred 要先被 tool_search 找到才激活；hidden 是注册了但不可达。MCP 工具默认就是 codemode 暴露，不声明给模型，所以接再多 MCP server，也不会把工具声明撑大。</p><p>刚才 Pi 自己写的 guard-tests 用的就是 tool_call。等下 demo 里的三个扩展，也都用这一页的钩子：guard 用 tool_call 拦截，resume 用 context 修补对话，social 用 tool_result 核验引用。</p></blockquote>
+<p>【核对】1.2.0 起，before_agent_start 也会对扩展用 pi.sendMessage(…, { triggerTurn: true }) 启动的 run 触发，只想处理用户输入的 handler 要检查 event.messageType。被问到再讲。</p>
+<h3 id="第-17-页-边界pi-不替你画要自己画15-分钟">第 17 页 · 边界：Pi 不替你画，要自己画（1.5 分钟）</h3>
+<blockquote><p>回到开头“刻意留白”里的权限问题。Pi 没有内置权限系统，以启动它的用户身份运行，文件、进程、网络、凭据都不设限。扩展跑在 Pi 进程里，能读到提示词、工具调用、文件、凭据和会话历史。</p><p>tool_call 钩子能做确认和拦截，但它是进程内的约束；要隔离，靠容器或沙箱。官方给了四种：Gondolin 扩展，把内置工具和感叹号命令放进本地的 Linux micro-VM；Plain Docker，把整个进程放进容器，最简单；Docker Sandboxes，厂商凭据留在宿主，由代理替换；OpenShell，放进带策略的沙箱。</p><p>注意 Gondolin 只隔离内置工具，其他扩展的工具仍在宿主上跑；另外三种是整个进程隔离，扩展也一起被隔离。真正要决定的是：我们愿意把 Pi 放在哪个隔离级别里运行。</p></blockquote>
+<h3 id="第-18-页-社区-packages能力在核心之外生长30-秒">第 18 页 · 社区 packages：能力在核心之外生长（30 秒）</h3>
+<blockquote><p>开头说不内置 sub-agent 和权限，社区已经用 package 补上了：权限控制、进程内的 sub-agent、GitHub 工具、语义代码搜索。pi install 一条命令装上，来源可以是 npm 或 git，都能固定版本。</p><p>这些是社区包，不是官方的，和 Pi 同权限运行，装之前先看源码。</p></blockquote>
+<p>过渡：</p>
+<blockquote><p>扩展能改变行为，那扩展自己的状态存在哪里？会话本身又是怎么存的？这就是第三个关键词：Sessions。</p></blockquote>
+<h2 id="03-源码走读-sessions7-分钟">03 源码走读 · Sessions（7 分钟）</h2>
+<h3 id="第-19-页-从命令看会话继续分支压缩1-分钟">第 19 页 · 从命令看会话：继续、分支、压缩（1 分钟）</h3>
+<blockquote><p>先从命令看。--continue 接上当前目录最近一次会话；--resume 打开会话选择器；/tree 在同一个会话文件里回到更早的节点，另开分支；/fork 从早先的用户消息建一个独立的新会话；/clone 把当前分支复制成新会话；/compact 手动压缩；/session 看会话文件、消息数和费用。</p><p>前面上手时已经用过几个。/tree、/fork、/clone 这三个，正好对应下一页的树形存储。</p></blockquote>
+<h3 id="第-20-页-会话是一棵树模型只看当前分支15-分钟">第 20 页 · 会话是一棵树，模型只看当前分支（1.5 分钟）</h3>
+<blockquote><p>会话按树存储。回到早先节点，离开的分支不会删。每次发给模型的，是当前这一条分支，加上系统提示、上下文文件、工具和 skill 的描述。压缩也不删东西，只是追加一条摘要，保留近期消息。</p><p>右边是写扩展时要关心的：状态放在哪里。跟着分支走的工具状态，放在工具结果的 details 里；要持久化但不进模型上下文，用 appendEntry；要存下来并发给模型，用 sendMessage；跨会话的数据，放外部存储。</p><p>所以进程退出后，--continue 能把对话接上。但要分清：这是会话级的恢复，不是任务级的断点续跑。</p></blockquote>
+<h3 id="第-21-页-演示打开会话文件25-分钟">第 21 页 · 演示：打开会话文件（2.5 分钟）</h3>
+<p>【演示】提前准备一个已有几轮对话、执行过一次 /compact 的会话，现场不等模型。打开 ~/.pi/agent/sessions/ 下对应目录里的 .jsonl 文件。</p>
+<blockquote><p>第一行是文件头，type 是 session，只有元数据，不在树里：它的 id 就是会话 ID，没有 parentId。之后每行一条记录，都有 id 和 parentId，就靠 parentId 连成一棵树。</p></blockquote>
+<p>【演示】在 Pi 里执行 /tree，选一条早先的用户消息，选不生成摘要，改写后提交。</p>
+<blockquote><p>源码里，选中一条用户消息，当前叶子会移到它的父节点。所以新消息的 parentId，和被选那条消息的 parentId 是同一个，这就是分叉点。旧分支原样保留。</p><p>如果选择生成摘要，分叉点上会先插入一条 branch_summary，新消息挂在它下面。</p></blockquote>
+<p>【演示】找到 type 为 compaction 的那一行。</p>
+<blockquote><p>这是压缩记录：summary 是摘要，firstKeptEntryId 是保留的起点。它前面的原始记录，一条都还在文件里。</p></blockquote>
+<h3 id="第-22-页-进程挂了能接上吗三种做法2-分钟">第 22 页 · 进程挂了能接上吗？三种做法（2 分钟）</h3>
+<blockquote><p>回到前面的问题：进程挂了，正在跑的任务怎么办？三种做法，是递进关系。</p><p>第一种，内置的会话级恢复。会话本来就落盘，--continue 能把历史读回来。中断的工具调用不会续跑；发请求之前，pi-ai 会给它补一条 “No result provided” 的错误结果，保证请求合法。但任务不会自己接着做。</p><p>第二种，用扩展做事后补救，就是等下 demo 里的 resume 扩展：checkpoint 写进 JSONL，重启时找出悬空的调用，用 context 钩子补一条“已中断”的结果，模型知道被打断了，接着做。不改 Pi 一行源码。</p><p>第三种，Pi Durable，从存储层解决：输出、工具调用、队列先提交到存储，再展示，崩溃后从最后一个 checkpoint 继续。只有声明 replay: &quot;safe&quot; 的工具会重跑，其他的拿到 interrupted 结果。存储支持 Memory、SQLite、JSONL 和 Cloudflare Durable Object。它随 1.0 发布，官方标注实验性，API 会变；会重跑的工具如果有副作用，幂等要自己保证。</p><p>第二种和第三种，demo 里都会看到。</p></blockquote>
+<p>过渡：</p>
+<blockquote><p>三个关键词讲完了。接下来用一个真实任务把它们串起来，从一句话跑到一份报告。</p></blockquote>
+<h2 id="04-demo一个任务跑到底14-分钟">04 Demo：一个任务跑到底（14 分钟）</h2>
+<h3 id="第-23-页-demo-里还会出现的三个能力1-分钟">第 23 页 · Demo 里还会出现的三个能力（1 分钟）</h3>
+<blockquote><p>还有三个能力不单独展开，在 demo 里看它们出现。</p><p>多模型：pi-ai 一套 API 接多家厂商，会话中途可以切。切的时候，历史会按目标模型转换：同一个模型保留带签名的 thinking；换了模型，thinking 转成普通文本，加密的部分丢掉，工具调用 ID 也会规范化。</p><p>Skills：系统提示里只放每个 skill 的名字和描述，任务需要时，模型自己去读完整的 SKILL.md。</p><p>压缩：接近上下文上限时自动触发，旧消息变成摘要，默认保留最近约 2 万 token，原始记录留在会话文件里。</p></blockquote>
+<h3 id="第-24-页-一句话进去一份舆情报告出来1-分钟">第 24 页 · 一句话进去，一份舆情报告出来（1 分钟）</h3>
+<blockquote><p>这是 demo 的路线图。我用 Pi 的 SDK 把 agent 嵌进一个小服务，做了一个舆情分析助手，再把事件实时推到一个页面上，叫 Inspector。数据是准备好的最近 7 天、3 个平台：99 个帖子、7628 条评论。</p><p>一共 7 步，Inspector 顶上的 6 个徽章会依次亮起来。背后是三个小扩展，各管一件事：social 接数据，guard 画边界，resume 做恢复。</p><p>先说清楚：第 4 步的恢复是我写的 resume 扩展，不是 Pi Durable；第 7 步才是官方的 Durable。</p></blockquote>
+<h3 id="第-25-页-演示inspector12-分钟">第 25 页 · 演示：Inspector（12 分钟）</h3>
+<p>【演示】切换前确认：npm run start:new 已启动、页面已打开、两家厂商的凭据可用、真实数据已导入。</p>
+<h4 id="第-1-步-一句话进去25-分钟">第 1 步 · 一句话进去（2.5 分钟）</h4>
+<p>【演示】输入框里填“分析一下最近 7 天的舆情，输出一份分析报告。”，先别点发送。</p>
+<blockquote><p>我只给它一句话，没告诉它研究什么对象、分几块看。大家猜一下，它第一步会做什么？</p></blockquote>
+<p>【停顿，收两三个答案，然后点发送】</p>
+<blockquote><p>先看 System Prompt 卡片。展开，这就是模型拿到的全部系统提示。skill 只有一行名字和描述，正文没进来；AGENTS.md 也在这里，我在里面写了“只能用工具查数据、报告不写用户昵称”。</p><p>再看时间线：它先 read 了 SKILL.md，Skills 徽章亮了，这就是按需加载。然后调 dataset_info 盘点数据，按监测词拆出几个话题，写进 plan.md。右上角进度条出现了。</p><p>注意紫色的工具卡片：dataset_info、social_search 这些不是 Pi 自带的，它们来自 social 扩展，就是刚才讲的 registerTool，背后接的是舆情数据。</p></blockquote>
+<p>【核对】话题个数、System Prompt 字符数以现场为准，讲你看到的数字。</p>
+<h4 id="第-2-步-插话steer-与-follow-up15-分钟">第 2 步 · 插话：steer 与 follow-up（1.5 分钟）</h4>
+<p>【演示】第 1 个话题进行中，输入“只看抖音和小红书”，点“插话（steer）”；再输入“最后给运营 3 条应对建议”，点“发送”。</p>
+<blockquote><p>这就是 Loop 里那两个队列。steer 在当前这批工具执行完就注入，看下一张查询卡片的参数，平台过滤已经加上了。follow-up 在运行中发出去，会排到整个任务做完之后才处理。</p></blockquote>
+<h4 id="第-3-步-护栏软约束和硬约束15-分钟">第 3 步 · 护栏：软约束和硬约束（1.5 分钟）</h4>
+<p>【演示】插话：“直接用 bash 统计一下 ../data 里有多少条评论”。</p>
+<blockquote><p>AGENTS.md 里我写了不许直接读数据文件，但那是写给模型看的，是软约束。用户一插话，它可能就照做了。</p><p>看，模型发出了一个 bash 调用，出现一张“护栏拦截”卡片。这是 guard 扩展，在 tool_call 钩子里检查参数，执行之前就拦下来，把原因作为工具结果还给模型。模型改用 dataset_info 拿到了条数。这就是硬约束。社区那些权限扩展，核心也是这个钩子，只是规则写得更全。</p></blockquote>
+<p>【核对】如果模型直接拒绝、没去调 bash，说明软约束这次生效了。照样讲两层约束的区别，再打开 guard.ts 给大家看代码。</p>
+<h4 id="第-4-步-定点崩溃与恢复3-分钟">第 4 步 · 定点崩溃与恢复（3 分钟）</h4>
+<p>【演示】第 2 个话题开始时点“定点崩溃”，等进程被杀；另开终端执行 npm start。</p>
+<blockquote><p>现在做一件生产环境里一定会发生的事：进程被杀。下一次查询拿到数据、写进缓存之后、交给模型之前，进程 SIGKILL 自己。选这个时刻，是因为它最尴尬：数据已经查了，模型却没收到。</p><p>新进程起来了。“从 JSONL 恢复会话”这张卡片告诉我们进度，还有 1 个被打断的工具调用。右边的会话树，就是磁盘上那个 JSONL 文件，多了一个恢复点。</p></blockquote>
+<p>【演示】先按第 5 步切模型，再点“从断点继续”。</p>
+<blockquote><p>看“上下文修补”卡片。前面讲过，Pi 内置只会补一条 “No result provided” 的错误结果；resume 扩展在 context 钩子里补的是明确的“已中断”，模型知道该重新查。</p><p>再看这张查询卡片右上角：“缓存命中”。数据在崩溃前已经落盘，这次没有再访问数据服务；已经完成的话题直接跳过。这就是 Durable 文档里说的，会重跑的步骤要幂等：查询按请求内容缓存，重复执行不会重复调用。</p></blockquote>
+<h4 id="第-5-步-换模型与压缩15-分钟">第 5 步 · 换模型与压缩（1.5 分钟）</h4>
+<p>【演示】点“从断点继续”之前，选模型 B 点“切换模型”。压缩阈值调低让它自动触发，或者任务结束后点“压缩上下文”。</p>
+<blockquote><p>采集用便宜模型，写报告我换一个强的。换了一家厂商，会话历史一条没丢；顶部的花费现在按模型拆开了。</p><p>几千条评论很快会把上下文撑满。看压缩卡片：压缩前多少 token，下一轮剩多少。会话树上旧节点划了线，但它们还在 JSONL 里。关键是，每个话题的结论早就写进了笔记文件，压缩丢的只是过程。长任务的状态要放在文件里，不能只放在上下文里。</p></blockquote>
+<h4 id="第-6-步-报告与引用1-分钟">第 6 步 · 报告与引用（1 分钟）</h4>
+<p>【演示】报告写完后点“报告”，再点一个 ID。</p>
+<blockquote><p>舆情报告最怕编。报告写入的那一刻，social 扩展在 tool_result 钩子里把所有引用 ID 核对了一遍，顶上显示“引用核验 N/N”。核验结果也附在工具结果里给了模型，有不存在的 ID，它在自检时会改掉。点一个 ID，弹出原评论，作者已经脱敏。</p></blockquote>
+<h4 id="第-7-步-对照官方-pi-durable1-分钟">第 7 步 · 对照官方 Pi Durable（1 分钟）</h4>
+<p>【演示】切到 v1.1.0 checkout 的终端，或直接播录屏：官方实验版 durable coding agent 跑一个 bash 任务，执行中 kill -9，再加 --continue 重启。</p>
+<blockquote><p>刚才的恢复是我用扩展在普通会话上手搓的，这是官方的做法。重启时会先等大约 10 秒，是 kill -9 留下的锁在等过期，不是卡住了。</p><p>看，被打断的调用自动拿到了 interrupted 结果，这一轮正常收尾，一个扩展都没装。我的做法是在 JSONL 上事后补救；Durable 在存储层，流式输出、工具结果、队列都随时提交到 SQLite。这个实验版 agent 只在 1.1.0 里有，1.2.0 已经拿掉了，pi-durable 库本身还在。</p><p>回到顶上的徽章：6 个能力，一个任务里全部出现了。背后是三个小扩展，加起来几百行，没改 Pi 一行源码。</p></blockquote>
+<p>【核对】三个扩展的实际行数用 wc -l src/extensions/*.ts 测出来再讲。现场跑不起来，用 npm run replay -- runs/final --speed 3 回放彩排存档；再不行，翻到附录最后两页截图。</p>
+<h2 id="05-探索与收尾3-分钟">05 探索与收尾（3 分钟）</h2>
+<h3 id="第-26-页-我们可以从哪里开始探索15-分钟">第 26 页 · 我们可以从哪里开始探索（1.5 分钟）</h3>
+<blockquote><p>最后落到我们自己，三个方向。</p><p>方向 A，嵌进研发流程。print、JSON 和 RPC 模式，让 Pi 可以被脚本、CI 和其他程序驱动。</p><p>方向 B，接入内部工具和数据。用自定义 tool 或 MCP server 把内部系统交给 agent，入口就是今天看过的 registerTool 和 registerMcpServer。刚才的舆情 demo，就是这个方向的一个例子。</p><p>方向 C，长期运行的助手，任务可中断、可恢复。Durable 还是实验性，适合先跟踪、小范围试。</p><p>A 和 B 现在就能动手。采用前提也说清楚：生态很活跃，仓库大约 11.5 万 star；迭代也很快，9 月 29 日到 10 月 12 日发了 10 个版本，从 0.99.0 到 1.2.0，破坏性变更不少。比如 1.2.0 改了 before_agent_start 的事件结构，还移除了实验性的 server/client 栈。升级前一定先读 changelog。</p></blockquote>
+<p>【待你补充】团队里如果已经有想试的具体场景，在这里点一句。</p>
+<h3 id="第-27-页-带走三句话15-分钟">第 27 页 · 带走三句话（1.5 分钟）</h3>
+<blockquote><p>最后三句话。</p><p>第一，小内核：四种宿主共用同一个 agent loop，进度全部是事件。</p><p>第二，能力从外面长出来：扩展、package、MCP。边界要自己画。</p><p>第三，进程挂了能接上：会话级恢复是内置的；任务级恢复看 Pi Durable，它仍是实验性的。</p><p>下一步，从方向 A 或 B 试起。今天 demo 的代码，包括三个扩展和舆情分析 skill，都在 GitHub 上：seveniscat/pi-inspector-demo。谢谢，下面是提问时间。</p></blockquote>
+<p>【待你补充】你自己对 Pi 的一句话结论，接在三句话之后。</p>
+<p>【核对】pi-inspector-demo 仓库已公开，且不含真实舆情数据。</p>
+<p>附录第 28–31 页现场不讲：安装、参考资料、Demo 兜底截图。</p>
+<h2 id="qa-预案">Q&amp;A 预案</h2>
+<p>原则：有来源的给来源，没验证的直接说“这点我会后确认再回复”，不现编。</p>
+<table><thead><tr><th>可能的问题</th><th>回答要点</th></tr></thead><tbody><tr><td>和 Claude Code 比，该不该换？</td><td>不是替换关系。Claude Code 是成品，内置权限、子 agent、plan；Pi 是底座，适合定制和嵌入。按场景选</td></tr><tr><td>为什么讲 1.2.0，Durable 演示却用 1.1.0？</td><td>官方实验版 durable coding agent 属于实验性 server/client 栈，1.2.0 整体移除了；pi-durable 库本身还在</td></tr><tr><td>agent-core 和 coding-agent 怎么分工？</td><td>agent-core 只有 Agent 类、agent loop、proxy stream 和类型；会话、压缩、skills 都在 coding-agent</td></tr><tr><td>steer 和 followUp 到底差在哪？</td><td>steer 每个 turn 结束都轮询，下个 turn 生效；followUp 只在 agent 本要停下时才检查。源码上一个在内层循环里，一个在循环外</td></tr><tr><td>在公司用安全吗？</td><td>默认无确认，以用户权限执行；tool_call 钩子只是进程内约束。要隔离用 Gondolin、Plain Docker、Docker Sandboxes 或 OpenShell</td></tr><tr><td>接很多 MCP 会不会撑大上下文？</td><td>MCP 工具默认是 codemode 暴露，不声明给模型，由沙箱脚本调用；也可以用 --no-mcp 关掉</td></tr><tr><td>为什么不内置子 agent？</td><td>作者认为子 agent 上下文传递差、不透明；官方建议用 tmux 起多个实例或用扩展自建，社区有 @gotgenes/pi-subagents 等</td></tr><tr><td>第三方扩展靠谱吗？</td><td>质量参差，和 Pi 同权限运行。装前看源码，优先选维护活跃的，固定版本</td></tr><tr><td>更新这么快，稳定吗？</td><td>9 月 29 日到 10 月 12 日发了 10 个版本。用官方安装脚本（固定全部依赖），团队统一锁版本，升级前读 changelog 里的破坏性变更</td></tr><tr><td>Pi 真的更省 token 吗？</td><td>社区有人测出约为 Claude Code 的四分之一，属于个人测试。【待你补充】你自己的实测；没有就说“社区数据，我未复测”</td></tr><tr><td>能用国内模型吗？数据能不出内网吗？</td><td>内置 DeepSeek、Qwen Token Plan、ZAI 中国区等提供商；自托管走 vLLM、llama.cpp 或 OpenAI 兼容接口，写一个 models.json 接入</td></tr><tr><td>你的 resume 扩展和官方 Durable 是什么关系？</td><td>两种做法，没有依赖关系。resume 在普通会话的 JSONL 上用 context 钩子事后补救，用来展示扩展能力；Durable 在存储层先提交再展示。生产要用，看 Durable</td></tr><tr><td>Durable 能用于生产吗？</td><td>官方标注实验性，API 会变。可以试点，不建议直接上关键链路</td></tr><tr><td>演示用的舆情数据安全吗？</td><td>真实数据只在本机，不进仓库；工具输出里评论作者已脱敏，报告不写用户昵称；guard 扩展禁止 agent 绕过工具直接读数据文件</td></tr><tr><td>团队要不要统一用 Pi？</td><td>今天的目的是探索它能做什么，不是推广。可以先从方向 A 或 B 挑一个场景小范围试</td></tr></tbody></table>
+<h2 id="演示命令速查与分享前核对">演示命令速查与分享前核对</h2>
+<h3 id="命令速查">命令速查</h3>
+<table><thead><tr><th>页码</th><th>用途</th><th>命令</th></tr></thead><tbody><tr><td>7</td><td>准备编码演示目录</td><td>bash coding-demo/scripts/setup.sh，然后 cd ~/pi-coding-demo</td></tr><tr><td>7</td><td>开场看 bug</td><td>!!npm run -s top</td></tr><tr><td>7</td><td>切换模型</td><td>Ctrl+P（事先在 /scoped-models 勾选两家）</td></tr><tr><td>7</td><td>提示模板 review</td><td>/review 重点看两个 bug 的修法，有没有漏掉的边界情况</td></tr><tr><td>7</td><td>整体乱了</td><td>退出后在 ~/pi-coding-demo 执行 ./scripts/reset.sh，重开 pi</td></tr><tr><td>12</td><td>走读的源码文件</td><td>packages/agent/src/agent-loop.ts（main 3daa202）</td></tr><tr><td>15</td><td>亮扩展代码</td><td>!!cat .pi/extensions/guard-tests.ts，然后 /reload</td></tr><tr><td>15</td><td>扩展兜底</td><td>!!cp demo-assets/guard-tests.ts .pi/extensions/，然后 /reload</td></tr><tr><td>18</td><td>安装扩展</td><td>pi install npm:&lt;包名&gt; 或 pi install git:&lt;仓库&gt;</td></tr><tr><td>19</td><td>继续最近会话</td><td>pi --continue</td></tr><tr><td>21</td><td>会话文件位置</td><td>~/.pi/agent/sessions/</td></tr><tr><td>25</td><td>Demo：导入真实数据并自检</td><td>npm run import -- 数据.xlsx，然后 SMOKE_DATASET=real npm test</td></tr><tr><td>25</td><td>Demo：新会话启动 Inspector</td><td>npm run start:new，打开 http://localhost:5173</td></tr><tr><td>25</td><td>Demo：定点崩溃（推荐）或手动崩溃</td><td>页面上点“定点崩溃”；或另开终端 npm run kill</td></tr><tr><td>25</td><td>Demo：恢复最近会话</td><td>npm start</td></tr><tr><td>25</td><td>Demo：回到干净状态</td><td>npm run reset &amp;&amp; npm run start:new</td></tr><tr><td>25</td><td>Demo：存档一次跑通的演示</td><td>npm run save-run -- final</td></tr><tr><td>25</td><td>Demo：现场兜底，倍速回放</td><td>npm run replay -- runs/final --speed 3</td></tr><tr><td>25</td><td>官方 Durable：准备 v1.1.0 checkout</td><td>git fetch --depth 1 origin tag v1.1.0（浅克隆时），git checkout v1.1.0 &amp;&amp; npm install &amp;&amp; npm run build</td></tr><tr><td>25</td><td>官方 Durable：启动与恢复</td><td>node --import ./packages/coding-agent/src/experimental/source-resolver.ts packages/coding-agent/src/experimental/durable/main.ts [--continue]</td></tr><tr><td>28</td><td>安装 Pi</td><td>curl -fsSL https://pi.dev/install.sh | sh</td></tr></tbody></table>
+<h3 id="分享前核对">分享前核对</h3>
+<ul><li data-checked="false"><p><input type="checkbox" disabled> pi.dev/changelog 最新版本仍为 1.2.0；有新版本就确认 agent-loop.ts 行号和事件结构是否变化</p></li><li data-checked="false"><p><input type="checkbox" disabled> 第 12 页：在 main 上按函数名复查行号</p></li><li data-checked="false"><p><input type="checkbox" disabled> 第 7 页：跑 setup.sh 准备 ~/pi-coding-demo；先进一次 pi 信任项目（不信任则 skill、模板、扩展都不加载）；/scoped-models 勾选两家模型</p></li><li data-checked="false"><p><input type="checkbox" disabled> 第 7、15 页：完整彩排一遍 Round 0–2、4 和 Round 6，然后 reset.sh 复原、开新会话</p></li><li data-checked="false"><p><input type="checkbox" disabled> 第 21 页：准备好一个已有几轮对话、执行过 /compact 的会话</p></li><li data-checked="false"><p><input type="checkbox" disabled> 第 25 页：导入真实数据，按 README 自检清单跑通全流程，重点看护栏拦截、上下文修补与缓存命中、引用核验；确认两个模型的 id 和 key</p></li><li data-checked="false"><p><input type="checkbox" disabled> 第 25 页：pi-inspector-demo 依赖的 Pi 版本与全场 1.2.0 口径一致；不一致时在 demo 开头说一句</p></li><li data-checked="false"><p><input type="checkbox" disabled> 第 25 页：彩排跑通后 npm run save-run -- final 存档；另录一份屏</p></li><li data-checked="false"><p><input type="checkbox" disabled> 第 25 页：官方 Durable 在 v1.1.0 checkout 上录屏；先用 pi 登录，凭据共用</p></li><li data-checked="false"><p><input type="checkbox" disabled> 三个扩展的行数用 wc -l src/extensions/*.ts 实测</p></li><li data-checked="false"><p><input type="checkbox" disabled> 补齐全部【待你补充】：团队场景、token 实测、个人结论</p></li><li data-checked="false"><p><input type="checkbox" disabled> 演示环境不露 API key，用一次性目录</p></li></ul>
+<h2 id="sources">Sources</h2>
+<ul><li><p><a href="https://github.com/earendil-works/pi">earendil-works/pi 仓库（README、Packages、Releases）</a></p></li><li><p><a href="https://pi.dev">pi.dev 首页与文档</a></p></li><li><p><a href="https://pi.dev/changelog">Pi changelog</a></p></li><li><p><a href="https://pi.dev/docs/latest/json">JSON 事件流文档</a></p></li><li><p><a href="https://earendil.com/posts/pi-durable/">Pi Durable 官方文章</a></p></li><li><p><a href="https://pi.dev/packages">pi.dev/packages</a></p></li><li><p><a href="https://github.com/gotgenes/pi-packages">gotgenes/pi-packages（社区 package 示例）</a></p></li></ul>
+<p>仓库内文档：packages/agent/README.md、src/agent-loop.ts；packages/coding-agent/docs 下的 extensions.md、sessions.md、session-format.md、compaction.md、usage.md、containerization.md；packages/durable/README.md。</p>
+
+</main>
+</body>
+</html>

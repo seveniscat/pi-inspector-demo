@@ -129,7 +129,7 @@ workspace/                agent 的工作目录（cwd）
   research/ report/       运行产物：plan.md（研究范围 + 话题清单）、topics/ 话题笔记、risk.md、最终报告
 models.json               国内 OpenAI 兼容 provider（DeepSeek、通义）
 coding-demo/              编码演示：零依赖的舆情统计 CLI + 逐轮提示词（DEMO.md），独立于上面的服务
-docs/talk/                分享材料：讲稿（讲稿.md）+ 幻灯片源文件（slides/）
+docs/talk/                分享材料：幻灯片.html（浏览器直接打开）、讲稿.html / 讲稿.md、幻灯片源文件 slides/
 ```
 
 ## 编码演示（Pi 当 coding agent 用）
