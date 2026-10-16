@@ -1,0 +1,27 @@
+<section id="demo-extra" data-transition="magic" style="background:radial-gradient(ellipse at 85% 0%, #17213A 0%, #0A0D12 60%), #0A0D12;color:#E9EDF3;font-family:'Noto Sans SC', sans-serif;padding:128px 128px 160px;display:flex;flex-direction:column;gap:32px"><x-embed style="position:absolute;left:0px;top:0px;width:1920px;height:1080px"><style>
+html,body{margin:0;width:100%;height:100%;overflow:hidden;background:transparent}
+.g{position:absolute;left:-60px;top:-60px;right:-60px;bottom:-60px;background-image:radial-gradient(rgba(255,255,255,.07) 1.3px,transparent 1.8px);background-size:48px 48px;-webkit-mask-image:radial-gradient(ellipse 70% 65% at 72% 26%,#000 8%,transparent 72%);mask-image:radial-gradient(ellipse 70% 65% at 72% 26%,#000 8%,transparent 72%);animation:pan 36s linear infinite}
+@keyframes pan{to{transform:translate(48px,48px)}}
+.b{position:absolute;height:0;border-radius:50%;will-change:transform;animation:d 24s ease-in-out infinite alternate}
+.b:nth-of-type(3){animation-duration:31s;animation-direction:alternate-reverse}
+.b:nth-of-type(4){animation-duration:38s}
+@keyframes d{0%{transform:translate(0,0) scale(1)}50%{transform:translate(3%,2%) scale(1.07)}100%{transform:translate(-2%,4%) scale(.96)}}
+.s{position:absolute;left:0;right:0;height:1px;top:0;background:linear-gradient(90deg,transparent 0%,rgba(242,184,75,.22) 40%,rgba(79,209,197,.18) 60%,transparent 100%);animation:sc 16s linear infinite;opacity:.6}
+@keyframes sc{0%{transform:translateY(-10px)}100%{transform:translateY(1200px)}}
+.p{position:absolute;width:3px;height:3px;border-radius:50%;background:#F2B84B;opacity:0;animation:f linear infinite}
+@keyframes f{0%{opacity:0;transform:translateY(0)}20%{opacity:.55}80%{opacity:.35}100%{opacity:0;transform:translateY(-200px)}}
+</style><div class="g"></div><div class="b" style="left:66%;top:-32%;width:46%;padding-top:46%;background:radial-gradient(circle,rgba(242,184,75,.15) 0%,transparent 68%)"></div><div class="b" style="left:-14%;top:52%;width:42%;padding-top:42%;background:radial-gradient(circle,rgba(79,209,197,.11) 0%,transparent 68%)"></div><div class="b" style="left:38%;top:70%;width:36%;padding-top:36%;background:radial-gradient(circle,rgba(124,108,255,.09) 0%,transparent 68%)"></div>
+<script>for(let i=0;i<22;i++){const p=document.createElement('div');p.className='p';p.style.left=(Math.random()*100)+'%';p.style.top=(30+Math.random()*75)+'%';p.style.animationDuration=(9+Math.random()*12)+'s';p.style.animationDelay=(-Math.random()*20)+'s';if(i%3==0)p.style.background='#4FD1C5';document.body.appendChild(p)}</script></x-embed><div id="kbar" style="position:absolute;left:128px;top:145px;width:40px;height:4px;background:linear-gradient(90deg, #F2B84B 0%, #4FD1C5 100%);border-radius:2px"></div><p id="kicker" style="position:absolute;left:184px;top:128px;width:1608px;font-family:'JetBrains Mono', monospace;font-size:28px;color:#F2B84B;letter-spacing:3px">04 · DEMO</p><h2 id="title" style="position:absolute;left:128px;top:184px;width:1664px;font-size:60px;font-weight:700;line-height:1.15;letter-spacing:-1px;color:#F3F5F8">Demo 里还会出现的三个能力</h2><div style="position:absolute;left:128px;top:296px;width:1664px;height:624px;display:flex;flex-direction:column;gap:44px" data-build-in="rise 1 auto"><div style="display:flex;gap:24px">
+<div style="flex:1;display:flex;flex-direction:column;gap:16px;background:#111722;border:1px solid #243041;border-radius:20px;box-shadow:0 20px 60px rgba(0,0,0,.35);padding:40px">
+<p style="font-family:'JetBrains Mono', monospace;font-size:28px;color:#4FD1C5">pi-ai</p>
+<h3 style="font-size:40px;font-weight:700">多模型</h3>
+<p style="font-size:30px;line-height:1.5">一套统一 API 接多家 provider。会话中用 /model 或 Ctrl+P 切换，历史在发送前按目标模型转换。</p></div>
+<div style="flex:1;display:flex;flex-direction:column;gap:16px;background:#111722;border:1px solid #243041;border-radius:20px;box-shadow:0 20px 60px rgba(0,0,0,.35);padding:40px">
+<p style="font-family:'JetBrains Mono', monospace;font-size:28px;color:#4FD1C5">SKILL.md</p>
+<h3 style="font-size:40px;font-weight:700">Skills</h3>
+<p style="font-size:30px;line-height:1.5">系统提示只带每个 skill 的名称和描述，任务需要时模型再读取完整说明。遵循 Agent Skills 规范。</p></div>
+<div style="flex:1;display:flex;flex-direction:column;gap:16px;background:#111722;border:1px solid #243041;border-radius:20px;box-shadow:0 20px 60px rgba(0,0,0,.35);padding:40px">
+<p style="font-family:'JetBrains Mono', monospace;font-size:28px;color:#4FD1C5">/compact</p>
+<h3 style="font-size:40px;font-weight:700">压缩</h3>
+<p style="font-size:30px;line-height:1.5">接近上下文上限时自动压缩：旧消息变成摘要，默认保留最近约 2 万 token；原始条目留在会话文件里。</p></div>
+</div><p style="font-size:32px;line-height:1.5;color:#A3ADBD">稍后的 demo 里会看到：模型读取 SKILL.md、换一家厂商继续、触发压缩。</p></div><p style="position:absolute;left:128px;bottom:64px;width:1664px;font-size:24px;color:#7C8798" data-build-in="fade 2 auto">来源：docs/models.md；docs/skills.md；docs/compaction.md；pi-ai src/api/transform-messages.ts</p><aside>这三个能力不单独展开，在 demo 里看它们出现。多模型切换的细节：pi-ai 发请求前会按目标模型转换历史，同一模型保留带签名的 thinking 块，换了模型就把 thinking 转成普通文本、丢弃加密的 redacted thinking，并规范化工具调用 ID。压缩保留的近期部分由 compaction.keepRecentTokens 控制，默认 20000。</aside></section>

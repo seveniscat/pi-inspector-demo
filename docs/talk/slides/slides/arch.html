@@ -1,0 +1,36 @@
+<section id="arch" data-transition="push" style="background:radial-gradient(ellipse at 85% 0%, #17213A 0%, #0A0D12 60%), #0A0D12;color:#E9EDF3;font-family:'Noto Sans SC', sans-serif;padding:128px 128px 160px;display:flex;flex-direction:column;gap:32px"><x-embed style="position:absolute;left:0px;top:0px;width:1920px;height:1080px"><style>
+html,body{margin:0;width:100%;height:100%;overflow:hidden;background:transparent}
+.g{position:absolute;left:-60px;top:-60px;right:-60px;bottom:-60px;background-image:radial-gradient(rgba(255,255,255,.07) 1.3px,transparent 1.8px);background-size:48px 48px;-webkit-mask-image:radial-gradient(ellipse 70% 65% at 72% 26%,#000 8%,transparent 72%);mask-image:radial-gradient(ellipse 70% 65% at 72% 26%,#000 8%,transparent 72%);animation:pan 36s linear infinite}
+@keyframes pan{to{transform:translate(48px,48px)}}
+.b{position:absolute;height:0;border-radius:50%;will-change:transform;animation:d 24s ease-in-out infinite alternate}
+.b:nth-of-type(3){animation-duration:31s;animation-direction:alternate-reverse}
+.b:nth-of-type(4){animation-duration:38s}
+@keyframes d{0%{transform:translate(0,0) scale(1)}50%{transform:translate(3%,2%) scale(1.07)}100%{transform:translate(-2%,4%) scale(.96)}}
+.s{position:absolute;left:0;right:0;height:1px;top:0;background:linear-gradient(90deg,transparent 0%,rgba(242,184,75,.22) 40%,rgba(79,209,197,.18) 60%,transparent 100%);animation:sc 16s linear infinite;opacity:.6}
+@keyframes sc{0%{transform:translateY(-10px)}100%{transform:translateY(1200px)}}
+.p{position:absolute;width:3px;height:3px;border-radius:50%;background:#F2B84B;opacity:0;animation:f linear infinite}
+@keyframes f{0%{opacity:0;transform:translateY(0)}20%{opacity:.55}80%{opacity:.35}100%{opacity:0;transform:translateY(-200px)}}
+</style><div class="g"></div><div class="b" style="left:66%;top:-32%;width:46%;padding-top:46%;background:radial-gradient(circle,rgba(242,184,75,.15) 0%,transparent 68%)"></div><div class="b" style="left:-14%;top:52%;width:42%;padding-top:42%;background:radial-gradient(circle,rgba(79,209,197,.11) 0%,transparent 68%)"></div><div class="b" style="left:38%;top:70%;width:36%;padding-top:36%;background:radial-gradient(circle,rgba(124,108,255,.09) 0%,transparent 68%)"></div>
+<script>for(let i=0;i<22;i++){const p=document.createElement('div');p.className='p';p.style.left=(Math.random()*100)+'%';p.style.top=(30+Math.random()*75)+'%';p.style.animationDuration=(9+Math.random()*12)+'s';p.style.animationDelay=(-Math.random()*20)+'s';if(i%3==0)p.style.background='#4FD1C5';document.body.appendChild(p)}</script></x-embed><div id="kbar" style="position:absolute;left:128px;top:145px;width:40px;height:4px;background:linear-gradient(90deg, #F2B84B 0%, #4FD1C5 100%);border-radius:2px"></div><p id="kicker" style="position:absolute;left:184px;top:128px;width:1608px;font-family:'JetBrains Mono', monospace;font-size:28px;color:#F2B84B;letter-spacing:3px">01 · WHAT</p><h2 id="title" style="position:absolute;left:128px;top:184px;width:1664px;font-size:60px;font-weight:700;line-height:1.15;letter-spacing:-1px;color:#F3F5F8">分层架构：按真实依赖画</h2><div style="position:absolute;left:128px;top:296px;width:1664px;height:624px;display:flex;flex-direction:column;gap:40px" data-build-in="rise 1 auto"><div style="display:flex;gap:40px">
+<div style="flex:3;display:flex;flex-direction:column;gap:16px">
+<div style="display:flex;flex-direction:column;gap:8px;background:linear-gradient(135deg, #2A2010 0%, #14110A 100%);border:2px solid #F2B84B;border-radius:16px;box-shadow:0 0 48px rgba(242,184,75,.18);padding:24px 32px">
+<p style="font-family:'JetBrains Mono', monospace;font-size:32px;font-weight:600;color:#F2B84B">pi-coding-agent</p>
+<p style="font-size:28px;line-height:1.4;color:#E9EDF3">CLI、TUI、RPC、SDK；会话、内置工具、skills、扩展</p></div>
+<div style="display:flex;flex-direction:column;gap:8px;background:#111722;border:1px solid #243041;border-radius:20px;box-shadow:0 20px 60px rgba(0,0,0,.35);padding:24px 32px">
+<p style="font-family:'JetBrains Mono', monospace;font-size:28px;font-weight:600;color:#4FD1C5">pi-agent-core · pi-tui · pi-mcp · pi-codemode</p>
+<p style="font-size:28px;line-height:1.4;color:#C3CBD8">coding-agent 的直接依赖：agent loop、终端 UI、MCP 客户端、沙箱脚本</p></div>
+<div style="display:flex;flex-direction:column;gap:8px;background:#111722;border:1px solid #243041;border-radius:20px;box-shadow:0 20px 60px rgba(0,0,0,.35);padding:24px 32px">
+<p style="font-family:'JetBrains Mono', monospace;font-size:28px;font-weight:600;color:#4FD1C5">pi-ai</p>
+<p style="font-size:28px;line-height:1.4;color:#C3CBD8">统一的多 provider LLM API，依赖 pi-telemetry</p></div>
+<p style="font-size:26px;line-height:1.4;color:#9AA6B8">coding-agent 直接依赖以上全部；中间一层只有 agent-core 依赖 pi-ai，tui、mcp、codemode 不依赖其他内部包</p>
+</div>
+<div style="flex:2;display:flex;flex-direction:column;gap:16px">
+<div style="display:flex;flex-direction:column;gap:10px;background:#111722;border:2px dashed #F2B84B;border-radius:16px;padding:24px 28px">
+<p style="font-family:'JetBrains Mono', monospace;font-size:28px;font-weight:600;color:#F2B84B">pi-durable（实验性）</p>
+<p style="font-size:26px;line-height:1.45;color:#C3CBD8">与 agent-core 平行的另一套 harness：先提交再展示，崩溃后从 checkpoint 继续。</p>
+<p style="font-size:26px;line-height:1.45;color:#9AA6B8">依赖 pi-ai、pi-codemode、chord；不在 coding-agent 的依赖链上。</p></div>
+<div style="display:flex;flex-direction:column;gap:10px;background:#111722;border:1px solid #243041;border-radius:20px;box-shadow:0 20px 60px rgba(0,0,0,.35);padding:24px 28px">
+<p style="font-family:'JetBrains Mono', monospace;font-size:28px;font-weight:600;color:#4FD1C5">chord</p>
+<p style="font-size:26px;line-height:1.45;color:#C3CBD8">可热更新插件、复制状态、JSON 链路 RPC。1.2.0 起 coding-agent 不再依赖它。</p></div>
+</div>
+</div></div><p style="position:absolute;left:128px;bottom:64px;width:1664px;font-size:24px;color:#7C8798" data-build-in="fade 2 auto">来源：main 分支（v1.2.0）各包 package.json 的 dependencies；README「Packages」</p><aside>这张图按 main 分支（v1.2.0）各包 package.json 的 dependencies 画。主干是 pi-coding-agent → pi-agent-core → pi-ai；pi-tui、pi-mcp、pi-codemode 是 coding-agent 的直接依赖。pi-mcp 是独立的 MCP 客户端，pi-codemode 是只能调用注入工具的沙箱 JavaScript 执行；这两个包不在 README 的 Packages 表里，但在依赖链上。pi-durable 是与 pi-agent-core 平行的另一套 harness，不是 coding-agent 的底层。1.2.0 移除了 coding-agent 对 chord 的依赖，chord 现在由 pi-durable 和 pi-env 使用。pi-agent-core 在 1.1.0 移除了实验性 harness，现在只包含 Agent 类、agent loop、proxy stream 及其类型；coding-agent 从它只取 Agent 和类型，会话、压缩、skills 都是 coding-agent 自己实现的。仓库里另有 env（Pi Durable 的远程执行环境）和 evals（私有包），图中不画。</aside></section>

@@ -1,0 +1,33 @@
+<section id="loop-flow" data-transition="magic" style="background:radial-gradient(ellipse at 85% 0%, #17213A 0%, #0A0D12 60%), #0A0D12;color:#E9EDF3;font-family:'Noto Sans SC', sans-serif;padding:128px 128px 160px;display:flex;flex-direction:column;gap:32px"><x-embed style="position:absolute;left:0px;top:0px;width:1920px;height:1080px"><style>
+html,body{margin:0;width:100%;height:100%;overflow:hidden;background:transparent}
+.g{position:absolute;left:-60px;top:-60px;right:-60px;bottom:-60px;background-image:radial-gradient(rgba(255,255,255,.07) 1.3px,transparent 1.8px);background-size:48px 48px;-webkit-mask-image:radial-gradient(ellipse 70% 65% at 72% 26%,#000 8%,transparent 72%);mask-image:radial-gradient(ellipse 70% 65% at 72% 26%,#000 8%,transparent 72%);animation:pan 36s linear infinite}
+@keyframes pan{to{transform:translate(48px,48px)}}
+.b{position:absolute;height:0;border-radius:50%;will-change:transform;animation:d 24s ease-in-out infinite alternate}
+.b:nth-of-type(3){animation-duration:31s;animation-direction:alternate-reverse}
+.b:nth-of-type(4){animation-duration:38s}
+@keyframes d{0%{transform:translate(0,0) scale(1)}50%{transform:translate(3%,2%) scale(1.07)}100%{transform:translate(-2%,4%) scale(.96)}}
+.s{position:absolute;left:0;right:0;height:1px;top:0;background:linear-gradient(90deg,transparent 0%,rgba(242,184,75,.22) 40%,rgba(79,209,197,.18) 60%,transparent 100%);animation:sc 16s linear infinite;opacity:.6}
+@keyframes sc{0%{transform:translateY(-10px)}100%{transform:translateY(1200px)}}
+.p{position:absolute;width:3px;height:3px;border-radius:50%;background:#F2B84B;opacity:0;animation:f linear infinite}
+@keyframes f{0%{opacity:0;transform:translateY(0)}20%{opacity:.55}80%{opacity:.35}100%{opacity:0;transform:translateY(-200px)}}
+</style><div class="g"></div><div class="b" style="left:66%;top:-32%;width:46%;padding-top:46%;background:radial-gradient(circle,rgba(242,184,75,.15) 0%,transparent 68%)"></div><div class="b" style="left:-14%;top:52%;width:42%;padding-top:42%;background:radial-gradient(circle,rgba(79,209,197,.11) 0%,transparent 68%)"></div><div class="b" style="left:38%;top:70%;width:36%;padding-top:36%;background:radial-gradient(circle,rgba(124,108,255,.09) 0%,transparent 68%)"></div>
+<script>for(let i=0;i<22;i++){const p=document.createElement('div');p.className='p';p.style.left=(Math.random()*100)+'%';p.style.top=(30+Math.random()*75)+'%';p.style.animationDuration=(9+Math.random()*12)+'s';p.style.animationDelay=(-Math.random()*20)+'s';if(i%3==0)p.style.background='#4FD1C5';document.body.appendChild(p)}</script></x-embed><div id="kbar" style="position:absolute;left:128px;top:145px;width:40px;height:4px;background:linear-gradient(90deg, #F2B84B 0%, #4FD1C5 100%);border-radius:2px"></div><p id="kicker" style="position:absolute;left:184px;top:128px;width:1608px;font-family:'JetBrains Mono', monospace;font-size:28px;color:#F2B84B;letter-spacing:3px">03 · LOOP</p><h2 id="title" style="position:absolute;left:128px;top:184px;width:1664px;font-size:60px;font-weight:700;line-height:1.15;letter-spacing:-1px;color:#F3F5F8">一条 prompt 的事件流：turn 是基本单位</h2><div style="position:absolute;left:128px;top:296px;width:1664px;height:624px;display:flex;flex-direction:column;gap:36px" data-build-in="rise 1 auto"><div style="display:flex;gap:40px">
+<div style="flex:5;display:flex;flex-direction:column;gap:8px;background:#070A0F;border:1px solid #1E2734;border-radius:16px;box-shadow:inset 0 1px 0 rgba(255,255,255,.04);padding:28px 36px">
+<p style="font-family:'JetBrains Mono', monospace;font-size:26px;color:#F2B84B;white-space:nowrap">agent_start</p>
+<p style="font-family:'JetBrains Mono', monospace;font-size:26px;color:#4FD1C5;white-space:nowrap;padding-left:28px">turn_start</p>
+<p style="font-family:'JetBrains Mono', monospace;font-size:26px;color:#C3CBD8;white-space:nowrap;padding-left:56px">message_*  (user)</p>
+<p style="font-family:'JetBrains Mono', monospace;font-size:26px;color:#C3CBD8;white-space:nowrap;padding-left:56px">message_start / update... / end  (assistant)</p>
+<p style="font-family:'JetBrains Mono', monospace;font-size:26px;color:#C3CBD8;white-space:nowrap;padding-left:56px">tool_execution_start / update / end</p>
+<p style="font-family:'JetBrains Mono', monospace;font-size:26px;color:#C3CBD8;white-space:nowrap;padding-left:56px">message_*  (toolResult)</p>
+<p style="font-family:'JetBrains Mono', monospace;font-size:26px;color:#4FD1C5;white-space:nowrap;padding-left:28px">turn_end</p>
+<p style="font-family:'JetBrains Mono', monospace;font-size:26px;color:#4FD1C5;white-space:nowrap;padding-left:28px">turn_start   <span style="color:#9AA6B8">// 工具结果交回 LLM</span></p>
+<p style="font-family:'JetBrains Mono', monospace;font-size:26px;color:#C3CBD8;white-space:nowrap;padding-left:56px">message_*  (assistant)</p>
+<p style="font-family:'JetBrains Mono', monospace;font-size:26px;color:#4FD1C5;white-space:nowrap;padding-left:28px">turn_end</p>
+<p style="font-family:'JetBrains Mono', monospace;font-size:26px;color:#F2B84B;white-space:nowrap">agent_end</p>
+</div>
+<div style="flex:4;display:flex;flex-direction:column;gap:24px;justify-content:center">
+<p style="font-size:34px;line-height:1.45"><b style="color:#F2B84B">turn</b> = 一次 LLM 调用，加上它触发的所有工具执行。</p>
+<p style="font-size:34px;line-height:1.45">助手不再请求工具、队列也为空，loop 才结束。</p>
+<p style="font-size:34px;line-height:1.45">进度全部以事件流出，界面只需订阅。</p>
+</div>
+</div></div><p style="position:absolute;left:128px;bottom:64px;width:1664px;font-size:24px;color:#7C8798" data-build-in="fade 2 auto">来源：packages/agent/README.md「Event Flow」</p><aside>先问：一条带工具调用的 prompt 会产生几个 turn？答案是两个：第一个 turn 里模型请求工具并执行，第二个 turn 把工具结果交回模型。重点是 loop 与 UI 解耦：进度全部以事件流出，这就是一个内核能服务四种宿主的原因。下一页把这条事件流画成控制流。</aside></section>

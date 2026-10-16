@@ -1,0 +1,27 @@
+<section id="loop-mech" data-transition="magic" style="background:radial-gradient(ellipse at 85% 0%, #17213A 0%, #0A0D12 60%), #0A0D12;color:#E9EDF3;font-family:'Noto Sans SC', sans-serif;padding:128px 128px 160px;display:flex;flex-direction:column;gap:32px"><x-embed style="position:absolute;left:0px;top:0px;width:1920px;height:1080px"><style>
+html,body{margin:0;width:100%;height:100%;overflow:hidden;background:transparent}
+.g{position:absolute;left:-60px;top:-60px;right:-60px;bottom:-60px;background-image:radial-gradient(rgba(255,255,255,.07) 1.3px,transparent 1.8px);background-size:48px 48px;-webkit-mask-image:radial-gradient(ellipse 70% 65% at 72% 26%,#000 8%,transparent 72%);mask-image:radial-gradient(ellipse 70% 65% at 72% 26%,#000 8%,transparent 72%);animation:pan 36s linear infinite}
+@keyframes pan{to{transform:translate(48px,48px)}}
+.b{position:absolute;height:0;border-radius:50%;will-change:transform;animation:d 24s ease-in-out infinite alternate}
+.b:nth-of-type(3){animation-duration:31s;animation-direction:alternate-reverse}
+.b:nth-of-type(4){animation-duration:38s}
+@keyframes d{0%{transform:translate(0,0) scale(1)}50%{transform:translate(3%,2%) scale(1.07)}100%{transform:translate(-2%,4%) scale(.96)}}
+.s{position:absolute;left:0;right:0;height:1px;top:0;background:linear-gradient(90deg,transparent 0%,rgba(242,184,75,.22) 40%,rgba(79,209,197,.18) 60%,transparent 100%);animation:sc 16s linear infinite;opacity:.6}
+@keyframes sc{0%{transform:translateY(-10px)}100%{transform:translateY(1200px)}}
+.p{position:absolute;width:3px;height:3px;border-radius:50%;background:#F2B84B;opacity:0;animation:f linear infinite}
+@keyframes f{0%{opacity:0;transform:translateY(0)}20%{opacity:.55}80%{opacity:.35}100%{opacity:0;transform:translateY(-200px)}}
+</style><div class="g"></div><div class="b" style="left:66%;top:-32%;width:46%;padding-top:46%;background:radial-gradient(circle,rgba(242,184,75,.15) 0%,transparent 68%)"></div><div class="b" style="left:-14%;top:52%;width:42%;padding-top:42%;background:radial-gradient(circle,rgba(79,209,197,.11) 0%,transparent 68%)"></div><div class="b" style="left:38%;top:70%;width:36%;padding-top:36%;background:radial-gradient(circle,rgba(124,108,255,.09) 0%,transparent 68%)"></div>
+<script>for(let i=0;i<22;i++){const p=document.createElement('div');p.className='p';p.style.left=(Math.random()*100)+'%';p.style.top=(30+Math.random()*75)+'%';p.style.animationDuration=(9+Math.random()*12)+'s';p.style.animationDelay=(-Math.random()*20)+'s';if(i%3==0)p.style.background='#4FD1C5';document.body.appendChild(p)}</script></x-embed><div id="kbar" style="position:absolute;left:128px;top:145px;width:40px;height:4px;background:linear-gradient(90deg, #F2B84B 0%, #4FD1C5 100%);border-radius:2px"></div><p id="kicker" style="position:absolute;left:184px;top:128px;width:1608px;font-family:'JetBrains Mono', monospace;font-size:28px;color:#F2B84B;letter-spacing:3px">03 · LOOP</p><h2 id="title" style="position:absolute;left:128px;top:184px;width:1664px;font-size:60px;font-weight:700;line-height:1.15;letter-spacing:-1px;color:#F3F5F8">loop 上的四个可控点</h2><div style="position:absolute;left:128px;top:296px;width:1664px;height:624px;display:flex;flex-direction:column;gap:40px" data-build-in="rise 1 auto"><div style="display:grid;grid-template-columns:1fr 1fr;gap:24px">
+<div style="display:flex;flex-direction:column;gap:14px;background:#111722;border:1px solid #243041;border-radius:20px;box-shadow:0 20px 60px rgba(0,0,0,.35);padding:32px 36px">
+<p style="font-family:'JetBrains Mono', monospace;font-size:26px;font-weight:600;color:#4FD1C5">transformContext → convertToLlm</p>
+<p style="font-size:28px;line-height:1.5">每次调用前先裁剪、注入上下文，再过滤掉 UI 专用消息，把自定义消息转成 LLM 能懂的三种角色。</p></div>
+<div style="display:flex;flex-direction:column;gap:14px;background:#111722;border:1px solid #243041;border-radius:20px;box-shadow:0 20px 60px rgba(0,0,0,.35);padding:32px 36px">
+<p style="font-family:'JetBrains Mono', monospace;font-size:26px;font-weight:600;color:#4FD1C5">toolExecution: parallel</p>
+<p style="font-size:28px;line-height:1.5">默认并发执行工具，结束事件按完成顺序发，toolResult 消息仍按助手原顺序落盘。</p></div>
+<div style="display:flex;flex-direction:column;gap:14px;background:#111722;border:1px solid #243041;border-radius:20px;box-shadow:0 20px 60px rgba(0,0,0,.35);padding:32px 36px">
+<p style="font-family:'JetBrains Mono', monospace;font-size:26px;font-weight:600;color:#4FD1C5">beforeToolCall / afterToolCall</p>
+<p style="font-size:28px;line-height:1.5">前者可拦截执行，后者可改写结果；整批都返回 terminate: true 时，跳过后续 LLM 调用。</p></div>
+<div style="display:flex;flex-direction:column;gap:14px;background:#111722;border:1px solid #243041;border-radius:20px;box-shadow:0 20px 60px rgba(0,0,0,.35);padding:32px 36px">
+<p style="font-family:'JetBrains Mono', monospace;font-size:26px;font-weight:600;color:#4FD1C5">steer() / followUp()</p>
+<p style="font-size:28px;line-height:1.5">steer 等本批工具执行完才注入，下个 turn 生效；followUp 只在 agent 本要停下时才检查。</p></div>
+</div></div><p style="position:absolute;left:128px;bottom:64px;width:1664px;font-size:24px;color:#7C8798" data-build-in="fade 2 auto">来源：packages/agent/README.md；src/agent-loop.ts（agentLoop）、src/agent.ts（Agent 类）</p><aside>Loop 的深入点，挑一个讲透：推荐 parallel。工具调用先按顺序做预检，通过的并发执行；tool_execution_end 按完成顺序发出，但落盘的 toolResult 仍按助手消息里的原顺序，turn_end 里的 toolResults 也一样。并发换速度，顺序保证 transcript 稳定。任一工具声明 executionMode: "sequential"，整批就改为顺序执行。</aside></section>

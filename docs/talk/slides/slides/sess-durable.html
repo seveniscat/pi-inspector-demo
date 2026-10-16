@@ -1,0 +1,27 @@
+<section id="sess-durable" data-transition="push" style="background:radial-gradient(ellipse at 85% 0%, #17213A 0%, #0A0D12 60%), #0A0D12;color:#E9EDF3;font-family:'Noto Sans SC', sans-serif;padding:128px 128px 160px;display:flex;flex-direction:column;gap:32px"><x-embed style="position:absolute;left:0px;top:0px;width:1920px;height:1080px"><style>
+html,body{margin:0;width:100%;height:100%;overflow:hidden;background:transparent}
+.g{position:absolute;left:-60px;top:-60px;right:-60px;bottom:-60px;background-image:radial-gradient(rgba(255,255,255,.07) 1.3px,transparent 1.8px);background-size:48px 48px;-webkit-mask-image:radial-gradient(ellipse 70% 65% at 72% 26%,#000 8%,transparent 72%);mask-image:radial-gradient(ellipse 70% 65% at 72% 26%,#000 8%,transparent 72%);animation:pan 36s linear infinite}
+@keyframes pan{to{transform:translate(48px,48px)}}
+.b{position:absolute;height:0;border-radius:50%;will-change:transform;animation:d 24s ease-in-out infinite alternate}
+.b:nth-of-type(3){animation-duration:31s;animation-direction:alternate-reverse}
+.b:nth-of-type(4){animation-duration:38s}
+@keyframes d{0%{transform:translate(0,0) scale(1)}50%{transform:translate(3%,2%) scale(1.07)}100%{transform:translate(-2%,4%) scale(.96)}}
+.s{position:absolute;left:0;right:0;height:1px;top:0;background:linear-gradient(90deg,transparent 0%,rgba(242,184,75,.22) 40%,rgba(79,209,197,.18) 60%,transparent 100%);animation:sc 16s linear infinite;opacity:.6}
+@keyframes sc{0%{transform:translateY(-10px)}100%{transform:translateY(1200px)}}
+.p{position:absolute;width:3px;height:3px;border-radius:50%;background:#F2B84B;opacity:0;animation:f linear infinite}
+@keyframes f{0%{opacity:0;transform:translateY(0)}20%{opacity:.55}80%{opacity:.35}100%{opacity:0;transform:translateY(-200px)}}
+</style><div class="g"></div><div class="b" style="left:66%;top:-32%;width:46%;padding-top:46%;background:radial-gradient(circle,rgba(242,184,75,.15) 0%,transparent 68%)"></div><div class="b" style="left:-14%;top:52%;width:42%;padding-top:42%;background:radial-gradient(circle,rgba(79,209,197,.11) 0%,transparent 68%)"></div><div class="b" style="left:38%;top:70%;width:36%;padding-top:36%;background:radial-gradient(circle,rgba(124,108,255,.09) 0%,transparent 68%)"></div>
+<script>for(let i=0;i<22;i++){const p=document.createElement('div');p.className='p';p.style.left=(Math.random()*100)+'%';p.style.top=(30+Math.random()*75)+'%';p.style.animationDuration=(9+Math.random()*12)+'s';p.style.animationDelay=(-Math.random()*20)+'s';if(i%3==0)p.style.background='#4FD1C5';document.body.appendChild(p)}</script></x-embed><div id="kbar" style="position:absolute;left:128px;top:145px;width:40px;height:4px;background:linear-gradient(90deg, #F2B84B 0%, #4FD1C5 100%);border-radius:2px"></div><p id="kicker" style="position:absolute;left:184px;top:128px;width:1608px;font-family:'JetBrains Mono', monospace;font-size:28px;color:#F2B84B;letter-spacing:3px">03 · SESSIONS</p><h2 id="title" style="position:absolute;left:128px;top:184px;width:1664px;font-size:60px;font-weight:700;line-height:1.15;letter-spacing:-1px;color:#F3F5F8">进程挂了能接上吗？三种做法</h2><div style="position:absolute;left:128px;top:296px;width:1664px;height:624px;display:flex;flex-direction:column;gap:36px" data-build-in="rise 1 auto"><div style="display:flex;gap:24px">
+<div style="flex:1;display:flex;flex-direction:column;gap:16px;background:#111722;border:1px solid #243041;border-radius:20px;box-shadow:0 20px 60px rgba(0,0,0,.35);padding:32px">
+<h3 style="font-size:34px;font-weight:700;color:#4FD1C5">内置：会话级恢复</h3>
+<p style="font-size:28px;line-height:1.45">会话自动落盘为 JSONL，pi --continue 接上对话。</p>
+<p style="font-size:28px;line-height:1.45;color:#A3ADBD">中断的工具调用不会续跑；发给模型前，pi-ai 为它补一条 “No result provided” 错误结果。</p></div>
+<div style="flex:1;display:flex;flex-direction:column;gap:16px;background:#111722;border:1px solid #243041;border-radius:20px;box-shadow:0 20px 60px rgba(0,0,0,.35);padding:32px">
+<h3 style="font-size:34px;font-weight:700">扩展：事后补救</h3>
+<p style="font-size:28px;line-height:1.45">demo 里的 resume 扩展：checkpoint 写进 JSONL，重启时找出悬空的调用。</p>
+<p style="font-size:28px;line-height:1.45;color:#A3ADBD">用 context 钩子补一条“已中断”结果，不改 Pi 源码。</p></div>
+<div style="flex:1;display:flex;flex-direction:column;gap:16px;background:#111722;border:2px solid #F2B84B;border-radius:16px;padding:32px">
+<h3 style="font-size:34px;font-weight:700;color:#F2B84B">Pi Durable：存储层</h3>
+<p style="font-size:28px;line-height:1.45">输出、工具调用、队列先提交到存储，再展示；崩溃后从最后一个 checkpoint 继续。</p>
+<p style="font-size:28px;line-height:1.45;color:#A3ADBD">只有声明 replay: "safe" 的工具会重跑，其余拿到 interrupted 结果。</p></div>
+</div><div style="background:linear-gradient(90deg, #2A2010 0%, #14110A 100%);border:1px solid #4A3A18;border-radius:16px;padding:24px 32px"><p style="font-size:28px;line-height:1.5"><b>现状：</b>Pi Durable 随 1.0 发布，官方标注实验性，API 会变。存储支持 Memory、SQLite、JSONL、Cloudflare Durable Object。会重跑的工具若有副作用，要自己保证幂等。</p></div></div><p style="position:absolute;left:128px;bottom:64px;width:1664px;font-size:24px;color:#7C8798" data-build-in="fade 2 auto">来源：earendil.com/posts/pi-durable；packages/durable/README.md；pi-ai src/api/transform-messages.ts</p><aside>三栏从左到右是递进关系：内置只把历史读回来，中断的调用由 pi-ai 在发请求前补一条 "No result provided" 的错误结果，保证请求合法，但任务不会自动续跑；扩展能明确告诉模型"被中断了"并接着做，但只是事后补救；Durable 从存储层解决，每一步先提交再展示。官方的 Durable 实验版 coding agent 在 v1.1.0 的 packages/coding-agent/src/experimental/durable，用 SQLite 存会话，kill 后用 --continue 重开，中断的调用拿到 interrupted 结果，turn 正常结束。1.2.0 移除了整个实验性 server/client 栈，这个 agent 也在其中，所以 demo 第 6 步在 v1.1.0 tag 上运行。</aside></section>
