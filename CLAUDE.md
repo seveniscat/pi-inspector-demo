@@ -20,6 +20,7 @@ Pi 技术分享的演示项目：用 Pi SDK 嵌入 agent，做一个可中断、
 - `workspace/`：agent 的 cwd。skill 在 `.pi/skills/opinion-research/`，项目约定在 `AGENTS.md`
 - `data/demo/` 由 `scripts/build-corpus.py` 生成（虚构品牌），**改演示数据改脚本，不要手改 JSON**
 - `data/real/` 由 `scripts/import-excel.py` 从用户的 Excel 导入，**真实数据，绝不提交**
+- `coding-demo/`：独立的编码演示项目（零依赖统计 CLI + `DEMO.md` 提示词），和主服务无代码依赖；它的 `scripts/setup.sh` 复制到独立目录再 `git init`，**不要在本仓库里对它执行 git init / reset**；两个 bug（排序方向、CSV `""` 转义）是故意埋的，不要修
 
 ## 改完必须做
 

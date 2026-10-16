@@ -128,6 +128,16 @@ workspace/                agent 的工作目录（cwd）
   .pi/skills/opinion-research/SKILL.md
   research/ report/       运行产物：plan.md（研究范围 + 话题清单）、topics/ 话题笔记、risk.md、最终报告
 models.json               国内 OpenAI 兼容 provider（DeepSeek、通义）
+coding-demo/              编码演示：零依赖的舆情统计 CLI + 逐轮提示词（DEMO.md），独立于上面的服务
+```
+
+## 编码演示（Pi 当 coding agent 用）
+
+`coding-demo/` 是一个独立的小项目（舆情帖子统计 CLI，零依赖，Node ≥ 22.19 原生跑 TS），用来现场演示 Pi 写代码：读懂项目 → 测试驱动修 bug → skill 加功能 → 换模型 review → `/tree` 从死胡同回到决策点 → 让 Pi 给自己写扩展。逐轮提示词、看点、讲点和兜底都在 [`coding-demo/DEMO.md`](coding-demo/DEMO.md)。
+
+```bash
+bash coding-demo/scripts/setup.sh   # 复制到 ~/pi-coding-demo 并 git init，演示在副本里做，不碰本仓库
+cd ~/pi-coding-demo && pi
 ```
 
 ## 第三部分演示脚本（约 17 分钟）
