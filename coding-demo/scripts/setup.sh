@@ -21,6 +21,10 @@ fi
 mkdir -p "$DEST"
 cp -R "$SRC/." "$DEST/"
 rm -f "$DEST/scripts/setup.sh"
+# 演示副本里去掉讲者材料：Round 1 会读 README，不能让模型提前看到提示词和 bug 线索
+rm -f "$DEST/DEMO.md"
+sed -i.bak -e '/<!-- demo-only:start -->/,/<!-- demo-only:end -->/d' -e '/^DEMO\.md /d' "$DEST/README.md"
+rm -f "$DEST/README.md.bak"
 touch "$DEST/$MARKER"
 
 cd "$DEST"
