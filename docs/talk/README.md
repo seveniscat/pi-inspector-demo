@@ -19,4 +19,4 @@ python3 docs/talk/build-html.py
 
 字体走 Google Fonts，离线时回退到系统字体。附录两页截图引用的是 `/_blob/…` 资源，没有随源文件导出，`幻灯片.html` 里显示为占位框。
 
-版本口径：全场讲 Pi v1.2.0（源码走读对应 main 提交 3daa202）；只有官方 Durable 实验版的演示在 v1.1.0 上跑。本仓库 `package.json` 锁的是 1.1.0，见根目录 README 自检清单。
+版本口径：全场讲 Pi v1.2.0（源码走读对应 main 提交 3daa202）；只有官方 Durable 实验版的演示在 v1.1.0 上跑。本仓库 `package.json` 锁的是 1.1.0，见 docs/reference.md 自检清单。

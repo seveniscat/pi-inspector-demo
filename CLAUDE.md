@@ -1,6 +1,6 @@
 # pi-inspector-demo
 
-Pi 技术分享的演示项目：用 Pi SDK 嵌入 agent，做一个可中断、可恢复的舆情分析助手（输入"分析一下最近 7 天的舆情" → 按监测话题深挖 + 风险扫描 → 带引用的报告），配 Web UI（Pi Agent Inspector）可视化执行过程。完整说明和链路见 README.md。
+Pi 技术分享的演示项目：用 Pi SDK 嵌入 agent，做一个可中断、可恢复的舆情分析助手（输入"分析一下最近 7 天的舆情" → 按监测话题深挖 + 风险扫描 → 带引用的报告），配 Web UI（Pi Agent Inspector）可视化执行过程。README.md 只放现场操作命令和提示词；完整说明、链路、演示讲点和自检清单在 docs/reference.md。
 
 ## 演示要覆盖的 6 个能力（改动不能削弱任何一个）
 
@@ -27,11 +27,11 @@ Pi 技术分享的演示项目：用 Pi SDK 嵌入 agent，做一个可中断、
 1. `npm test`：数据层冒烟测试（不需要模型 key）；有 data/real 时再跑 `SMOKE_DATASET=real npm test`
 2. 语法检查：`for f in src/*.ts src/*/*.ts; do node --experimental-strip-types --check $f; done`
 3. 改了 UI：抽出 `<script>` 用 `node --check` 检查，最好用 Playwright 截图看一眼
-4. README 的"演示脚本"和"自检清单"跟着更新
+4. docs/reference.md 的"演示脚本"和"自检清单"跟着更新；现场操作有变时同步 README.md（只放命令和提示词，不写讲点）
 
 ## 约束
 
-- Pi 包是 `@earendil-works/pi-coding-agent`，基线 1.1.0（package.json 锁死，1.2.0 的差异见 README 自检清单）。API 以官方仓库 earendil-works/pi 的 docs 为准，不确定的地方用 `as any` 并在 README 自检清单里加一条
+- Pi 包是 `@earendil-works/pi-coding-agent`，基线 1.1.0（package.json 锁死，1.2.0 的差异见 docs/reference.md 自检清单）。API 以官方仓库 earendil-works/pi 的 docs 为准，不确定的地方用 `as any` 并在 docs/reference.md 自检清单里加一条
 - 演示语料是虚构品牌，页面和报告里要能看出是演示数据
 - 不要提交 `.env`、`data/real/`、`*.xlsx`、`data/cache/`、`logs/`、`runs/`、`workspace/research/`、`workspace/report/`
 - 工具输出不带评论作者（脱敏）；报告不写评论用户昵称

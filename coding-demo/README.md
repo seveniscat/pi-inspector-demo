@@ -3,7 +3,7 @@
 Pi 编码演示用的小项目：舆情帖子统计 CLI，零依赖，Node ≥ 22.19 直接运行 TypeScript。
 
 <!-- demo-only:start -->
-演示时不要在仓库里直接操作，先 `bash coding-demo/scripts/setup.sh` 复制到 `~/pi-coding-demo`，详见下方「现场演示速查」和 DEMO.md。
+演示在副本里做，不在本仓库操作，见下方「现场演示速查」。
 
 <!-- demo-only:end -->
 
@@ -14,93 +14,82 @@ node src/cli.ts data/posts.csv top 3      # 互动量 Top N
 ```
 
 <!-- demo-only:start -->
-## 现场演示速查（分享用精简版，约 10 分钟）
+## 现场演示速查
 
-和讲稿对应：第 7 页跑 Round 0、1、2、4，第 15 页跑 Round 6，**两段用同一个 pi 会话**。完整版（含 Round 3 skill、Round 5 `/tree`、Round 7 `pi -p`）见 DEMO.md。
+第 7 页 + 第 15 页，同一个 pi 会话。完整版见 DEMO.md。
 
-### 0. 准备（上台前）
+### 准备
 
 ```bash
-node -v                                   # ≥ 22.19
-pi -v                                     # 1.1.0
-bash coding-demo/scripts/setup.sh         # 在仓库根目录执行，复制到 ~/pi-coding-demo 并打 demo-start 标签
+bash coding-demo/scripts/setup.sh         # 在仓库根目录执行
 cd ~/pi-coding-demo && npm test           # 应为 pass 5 / fail 2
 pi
 ```
 
-进 pi 后：
+进 pi 后：信任项目（`/trust`）；`/scoped-models` 勾两家模型。
 
-- 出现 trust 提示选信任（或执行 `/trust`），否则 skill、`/review`、扩展都不加载
-- `/scoped-models` 勾两家厂商的模型，现场用 Ctrl+P 切换
-- 启动头应显示：AGENTS.md、1 个 skill、1 个 prompt template
+### 第 7 页
 
-### 1. 第 7 页 · 上手（约 7 分钟）
-
-**Round 0 看 bug**：`!!` 只在终端跑，输出不发给模型。第一名是 816 互动，排序明显反了。
+Round 0
 
 ```
 !!npm run -s top
 ```
 
-**Round 1 读懂项目**：看 `ls` / `read` 调用，回答会复述 AGENTS.md 的约定。之后 Ctrl+O 展开一次工具输出再收起。
+Round 1
 
 ```
 先别改任何代码。快速读一下这个项目，用 5 行以内告诉我：它是干什么的、入口在哪、测试怎么跑、有哪些项目约定。
 ```
 
-**Round 2 测试驱动修 bug**：看 `bash → read → edit → bash` 循环。
+Round 2
 
 ```
 跑一下测试，把失败的修好。规则：只改 src/，不许改 test/。修完再跑一遍确认全绿，最后用两句话说清两个 bug 的根因。
 ```
 
-它还在干活时，直接输入并回车（steering；Alt+Enter 是 follow-up）：
+它还在干活时输入并回车：
 
 ```
 修完顺便跑一下 top 3 给我看
 ```
 
-**Round 4 换模型 review**：先按 Ctrl+P，指一下 footer 里模型名变了。
+Round 4：先按 Ctrl+P 切模型
 
 ```
 /review 重点看两个 bug 的修法，有没有漏掉的边界情况
 ```
 
-做完**不要退出 pi**，第 15 页回到这个会话。
+做完不要退出 pi。
 
-### 2. 第 15 页 · 让 Pi 给自己写扩展（约 3 分钟）
+### 第 15 页
+
+Round 6
 
 ```
 给你自己写一个 Pi 扩展，路径 .pi/extensions/guard-tests.ts：监听 tool_call 事件，拦截所有对 test/ 目录的 write 和 edit，返回 block，reason 写"测试文件受保护，请修改实现代码"，同时用 ctx.ui.notify 弹一个 warning。API 不确定就先看你自己的文档和 extensions 示例。只写这一个文件，写完不要做别的。
 ```
 
-亮代码，重点停在 `pi.on("tool_call", …)` 和 `return { block: true, reason }`：
-
 ```
 !!cat .pi/extensions/guard-tests.ts
 ```
-
-热加载：
 
 ```
 /reload
 ```
 
-故意让它改测试，应弹出黄色警告，这次 edit 变成错误结果：
-
 ```
 把 test/stats.test.ts 里 topPosts 那个用例的期望值改成 ["p05", "p13", "p17"]。
 ```
 
-### 3. 翻车与复原
+### 兜底与复原
 
-| 情况 | 处理 |
+| 情况 | 操作 |
 |---|---|
 | 启动头没有 skill / template | `/trust` 后重启 pi |
-| Round 2 改了 test/ | 顺势说"所以第 15 页要写扩展" |
-| 模型卡住或跑偏 | Esc 中断，改一句重发 |
-| 扩展写崩或 API 用错 | `!!cp demo-assets/guard-tests.ts .pi/extensions/`，再 `/reload` |
-| 整体乱了 / 彩排完复原 | 退出 pi，`cd ~/pi-coding-demo && ./scripts/reset.sh`，重开 pi |
+| 卡住或跑偏 | Esc，改一句重发 |
+| 扩展写崩 | `!!cp demo-assets/guard-tests.ts .pi/extensions/`，再 `/reload` |
+| 复原 | 退出 pi，`cd ~/pi-coding-demo && ./scripts/reset.sh` |
 <!-- demo-only:end -->
 
 ## 命令
